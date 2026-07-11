@@ -28,6 +28,12 @@ factor (estilo SHAP: "Inasistencia 58%, Reuniones omitidas 17%, ...").
 
 from __future__ import annotations
 
+import sys
+import os
+# Asegura que 'import database' funcione tanto en local como en producción (Render)
+# independiente de desde qué directorio se ejecute uvicorn.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from datetime import date, timedelta
 from pathlib import Path
 from typing import List, Optional, Union
