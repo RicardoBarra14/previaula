@@ -291,32 +291,35 @@ def compute_risk(conn, student: dict) -> dict:
             f"({top['contribution']}% del riesgo detectado)."
         )
 
-    # Mismatch check (inconsistencia de seguridad apoderado-estudiante)
-    mismatch = False
-    mismatch_detail = ""
+    # Mismatch check (inconsistencia de seguridad apoderado-estudiante y manuales)
+    mismatches = []
     
-    # Inconsistencia manual del docente
+    # 1. Inconsistencia automática detectada por la máquina (cruzar encuestas)
+    parent_survey = conn.execute(
+        "SELECT * FROM GuardianSurveys WHERE student_id=? ORDER BY survey_date DESC LIMIT 1",
+        (sid,)
+    ).fetchone()
+    
+    student_report = conn.execute(
+        "SELECT * FROM StudentSelfReports WHERE student_id=? ORDER BY report_date DESC LIMIT 1",
+        (sid,)
+    ).fetchone()
+    
+    if parent_survey and student_report:
+        p_safe = parent_survey["safe_at_school"]
+        s_safe = student_report["safe_at_school"]
+        if p_safe == "Sí" and s_safe == "No":
+            mismatches.append("Seguridad: El apoderado reporta el liceo como seguro, pero el estudiante indica sentirse inseguro.")
+        elif p_safe == "No" and s_safe == "Sí":
+            mismatches.append("Seguridad: El apoderado reporta el liceo como inseguro, pero el estudiante indica sentirse seguro.")
+
+    # 2. Inconsistencia manual ingresada por el profesor
     manual_mis = student.get("manual_mismatch")
     if manual_mis:
-        mismatch = True
-        mismatch_detail = f"Inconsistencia Manual (Docente): {manual_mis}"
-    else:
-        parent_survey = conn.execute(
-            "SELECT * FROM GuardianSurveys WHERE student_id=? ORDER BY survey_date DESC LIMIT 1",
-            (sid,)
-        ).fetchone()
+        mismatches.append(f"Manual (Docente): {manual_mis}")
         
-        student_report = conn.execute(
-            "SELECT * FROM StudentSelfReports WHERE student_id=? ORDER BY report_date DESC LIMIT 1",
-            (sid,)
-        ).fetchone()
-        
-        if parent_survey and student_report:
-            p_safe = parent_survey["safe_at_school"]
-            s_safe = student_report["safe_at_school"]
-            if (p_safe == "Sí" and s_safe == "No") or (p_safe == "No" and s_safe == "Sí"):
-                mismatch = True
-                mismatch_detail = "Inconsistencia de Seguridad: El apoderado percibe plena seguridad del estudiante en el liceo, pero el estudiante reporta sentirse inseguro."
+    mismatch = len(mismatches) > 0
+    mismatch_detail = mismatches[0] if mismatch else ""
 
     return {
         "score": score,
@@ -331,7 +334,8 @@ def compute_risk(conn, student: dict) -> dict:
         "factors": factors,
         "window_days": RISK_WINDOW_DAYS,
         "mismatch": mismatch,
-        "mismatch_detail": mismatch_detail
+        "mismatch_detail": mismatch_detail,
+        "mismatches": mismatches
     }
 
 
@@ -435,7 +439,8 @@ def list_students(course: Optional[str] = None):
                 "attendance_rate": risk["attendance_rate"],
                 "top_factors": risk["factors"][:2],
                 "mismatch": risk["mismatch"],
-                "mismatch_detail": risk["mismatch_detail"]
+                "mismatch_detail": risk["mismatch_detail"],
+                "mismatches": risk["mismatches"]
             }
             out.append(s)
         # Orden por riesgo descendente para priorización.

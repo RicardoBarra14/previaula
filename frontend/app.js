@@ -722,11 +722,12 @@
             </div>
             ${chip(s.risk.level, s.risk.label)}
           </div>
-          ${s.risk.mismatch ? `
+          ${s.risk.mismatch && s.risk.mismatches && s.risk.mismatches.length ? `
             <div class="alert-mismatch-banner" style="background: var(--risk-alto-wash); color: var(--risk-alto); border: 1px solid var(--risk-alto); padding: 8px 12px; border-radius: var(--r-sm); margin: 0 16px 12px; font-size: 11.5px; display: flex; align-items: start; gap: 6px; font-weight:600; line-height: 1.35;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
-              <div>
-                ${escapeHTML(s.risk.mismatch_detail)}
+              <div style="display:flex; flex-direction:column; gap:4px; width: 100%;">
+                <div style="font-weight:700; text-decoration: underline; margin-bottom: 2px;">Inconsistencias detectadas (Info Docente):</div>
+                ${s.risk.mismatches.map(m => `<div style="display:flex; gap:4px;">• <span>${escapeHTML(m)}</span></div>`).join("")}
               </div>
             </div>
           ` : ""}
@@ -825,12 +826,13 @@
     const hRisk = detail.home_risk_score || 20;
     const aRisk = detail.academic_risk_score || 25;
 
-    const mismatchBanner = r.mismatch ? `
+    const mismatchBanner = (r.mismatch && r.mismatches && r.mismatches.length) ? `
       <div class="alert-mismatch-banner" style="background: var(--risk-alto-wash); color: var(--risk-alto); border: 1px solid var(--risk-alto); padding: 12px; border-radius: var(--r-sm); margin-bottom: 20px; font-size: 12.5px; display: flex; align-items: start; gap: 8px; font-weight:600; line-height: 1.4;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
-        <div>
-          ${escapeHTML(r.mismatch_detail)}
-          <div style="font-weight: normal; margin-top: 4px; font-size: 11.5px; color: var(--ink-soft);">
+        <div style="display:flex; flex-direction:column; gap:4px; width: 100%;">
+          <div style="font-weight:700; text-decoration: underline; margin-bottom: 2px;">Inconsistencias de Información Detectadas:</div>
+          ${r.mismatches.map(m => `<div style="display:flex; gap:4px;">• <span>${escapeHTML(m)}</span></div>`).join("")}
+          <div style="font-weight: normal; margin-top: 6px; font-size: 11.5px; color: var(--ink-soft); border-top: 1px dashed var(--line); padding-top: 6px;">
             Se sugiere agendar entrevista presencial de aclaración de convivencia escolar.
           </div>
         </div>
@@ -1393,22 +1395,6 @@
         });
       }
     }
-    
-    // Alerta de inconsistencia
-    const alertBox = $("#guardian-mismatch-alert");
-    const alertText = $("#guardian-mismatch-text");
-    if (alertBox && alertText) {
-      if (state.currentChild) {
-        const riskData = await apiGet(`/api/students/${state.currentChild}/risk`, null);
-        if (riskData && riskData.mismatch) {
-          alertText.textContent = riskData.mismatch_detail;
-          alertBox.style.display = "block";
-        } else {
-          alertBox.style.display = "none";
-        }
-      } else {
-        alertBox.style.display = "none";
-      }
     }
   }
 
