@@ -65,7 +65,14 @@ CREATE TABLE IF NOT EXISTS Guardians (
     relationship  TEXT    NOT NULL,   -- Madre / Padre / Abuela / Tutor legal
     phone         TEXT    NOT NULL,
     email         TEXT    NOT NULL,
-    contact_ok    INTEGER NOT NULL DEFAULT 1  -- ¿datos de contacto verificados?
+    contact_ok    INTEGER NOT NULL DEFAULT 1,  -- ¿datos de contacto verificados?
+    employment_status  TEXT DEFAULT NULL,
+    education_level    TEXT DEFAULT NULL,
+    availability_hours TEXT DEFAULT NULL,
+    internet_access    TEXT DEFAULT NULL,
+    has_computer       TEXT DEFAULT NULL,
+    parent_comments    TEXT DEFAULT NULL,
+    teacher_notes      TEXT DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Students (

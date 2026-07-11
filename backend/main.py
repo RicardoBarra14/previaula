@@ -30,8 +30,6 @@ from __future__ import annotations
 
 import sys
 import os
-# Asegura que 'import database' funcione tanto en local como en producción (Render)
-# independiente de desde qué directorio se ejecute uvicorn.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from datetime import date, timedelta
@@ -117,6 +115,11 @@ class UserRegister(BaseModel):
     role: str
     full_name: str
     related_id: Optional[int] = None
+    guardian_run: Optional[str] = None
+    guardian_relationship: Optional[str] = "Tutor legal"
+    guardian_phone: Optional[str] = ""
+    guardian_email: Optional[str] = ""
+    student_runs: Optional[List[str]] = None
 
 
 class EstablishmentCreate(BaseModel):
@@ -153,6 +156,25 @@ class GuardianSurveyIn(BaseModel):
     cohesion_rate: int
     cohesion_help: int
     safe_at_school: str
+
+
+class GuardianProfileUpdate(BaseModel):
+    phone: str
+    email: str
+    employment_status: Optional[str] = None
+    education_level: Optional[str] = None
+    availability_hours: Optional[str] = None
+    internet_access: Optional[str] = None
+    has_computer: Optional[str] = None
+    parent_comments: Optional[str] = None
+
+
+class GuardianStudentAssign(BaseModel):
+    student_run: str
+
+
+class GuardianTeacherNotesUpdate(BaseModel):
+    teacher_notes: Optional[str] = None
 
 
 class StudentActivityAssignIn(BaseModel):
@@ -696,9 +718,49 @@ def register_user(payload: UserRegister):
         if existing:
             raise HTTPException(400, "El nombre de usuario ya está registrado")
             
+        related_id = payload.related_id
+        guardian_info = None
+        student_info = None
+        
+        # Si el rol es apoderado, creamos el Guardian
+        if payload.role == "apoderado":
+            run_val = payload.guardian_run or f"TEMP-{payload.username}"
+            cur_g = conn.execute(
+                """INSERT INTO Guardians 
+                   (run, full_name, relationship, phone, email, contact_ok) 
+                   VALUES (?,?,?,?,?,1)""",
+                (run_val, payload.full_name, payload.guardian_relationship, payload.guardian_phone, payload.guardian_email)
+            )
+            related_id = cur_g.lastrowid
+            
+            # Asociar estudiantes por su RUN
+            if payload.student_runs:
+                for run_str in payload.student_runs:
+                    run_clean = run_str.strip()
+                    if run_clean:
+                        conn.execute(
+                            "UPDATE Students SET guardian_id=? WHERE run=?",
+                            (related_id, run_clean)
+                        )
+            
+            # Obtener datos de guardian y estudiantes asignados
+            g_row = conn.execute("SELECT * FROM Guardians WHERE id=?", (related_id,)).fetchone()
+            if g_row:
+                guardian_info = dict(g_row)
+                students = conn.execute("SELECT * FROM Students WHERE guardian_id=?", (related_id,)).fetchall()
+                guardian_info["students"] = []
+                for s in students:
+                    s_dict = _student_row_to_dict(s)
+                    est = conn.execute(
+                        "SELECT name FROM Establishments WHERE id=?", (s["establishment_id"],)
+                    ).fetchone()
+                    s_dict["establishment_name"] = est["name"] if est else "Establecimiento no asignado"
+                    guardian_info["students"].append(s_dict)
+                    
+        # Crear usuario
         cur = conn.execute(
             "INSERT INTO Users (username, password, role, related_id, full_name) VALUES (?,?,?,?,?)",
-            (payload.username, payload.password, payload.role, payload.related_id, payload.full_name)
+            (payload.username, payload.password, payload.role, related_id, payload.full_name)
         )
         user_id = cur.lastrowid
         conn.commit()
@@ -708,12 +770,11 @@ def register_user(payload: UserRegister):
             "username": payload.username,
             "role": payload.role,
             "full_name": payload.full_name,
-            "related_id": payload.related_id
+            "related_id": related_id
         }
         
-        student_info = None
-        if payload.role == "estudiante" and payload.related_id:
-            st = conn.execute("SELECT * FROM Students WHERE id=?", (payload.related_id,)).fetchone()
+        if payload.role == "estudiante" and related_id:
+            st = conn.execute("SELECT * FROM Students WHERE id=?", (related_id,)).fetchone()
             if st:
                 student_info = _student_row_to_dict(st)
                 est = conn.execute(
@@ -725,7 +786,7 @@ def register_user(payload: UserRegister):
             "status": "success",
             "user": user,
             "student_info": student_info,
-            "guardian_info": None
+            "guardian_info": guardian_info
         }
     finally:
         conn.close()

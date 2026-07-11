@@ -1168,18 +1168,24 @@
   // RENDER · Vista Familia
   // =========================================================================
   function pickFamilyChildren() {
-    const withRate = state.students.map((s) => s).sort(
-      (a, b) => b.risk.attendance_rate - a.risk.attendance_rate);
-    const picks = [withRate[0], withRate[Math.floor(withRate.length / 2)], withRate[withRate.length - 1]]
-      .filter(Boolean);
-    state.familyChildIds = [...new Set(picks.map((s) => s.id))];
+    if (state.guardianInfo && state.guardianInfo.students && state.guardianInfo.students.length > 0) {
+      state.familyChildIds = [...new Set(state.guardianInfo.students.map((s) => s.id))];
+    } else {
+      const withRate = state.students.map((s) => s).sort(
+        (a, b) => b.risk.attendance_rate - a.risk.attendance_rate);
+      const picks = [withRate[0], withRate[Math.floor(withRate.length / 2)], withRate[withRate.length - 1]]
+        .filter(Boolean);
+      state.familyChildIds = [...new Set(picks.map((s) => s.id))];
+    }
     state.currentChild = state.familyChildIds[0];
   }
 
   function renderChildPills() {
     const wrap = $("#child-select");
+    if (!wrap) return;
     wrap.innerHTML = state.familyChildIds.map((id) => {
       const s = state.students.find((x) => x.id === id);
+      if (!s) return "";
       return `<button class="child-pill ${id === state.currentChild ? "is-active" : ""}" data-child="${id}" type="button">
         ${avatar(s.avatar_seed, s.full_name, "avatar--sm")} ${escapeHTML(s.first_name)}
       </button>`;
@@ -1189,8 +1195,13 @@
         state.currentChild = +b.dataset.child;
         renderFamily();
         const activeTab = $(".family-tab-btn.is-active");
-        if (activeTab && activeTab.dataset.familyTab === "rendimiento") {
-          renderFamilyGrades();
+        if (activeTab) {
+          const tab = activeTab.dataset.familyTab;
+          if (tab === "rendimiento") {
+            renderFamilyGrades();
+          } else if (tab === "perfil") {
+            renderFamilyProfile();
+          }
         }
       }));
   }
@@ -1253,6 +1264,105 @@
           </div>
         `;
       }).join("");
+    }
+  }
+
+  async function renderFamilyProfile() {
+    const guardianId = state.guardianInfo ? state.guardianInfo.id : (state.user ? state.user.related_id : null);
+    if (!guardianId) {
+      toast("No se encontró información del apoderado.");
+      return;
+    }
+    
+    const g = await apiGet(`/api/guardian/${guardianId}`, null);
+    if (!g) return;
+    
+    state.guardianInfo = g;
+    
+    // Rellenar formulario de perfil familiar
+    if ($("#profile-phone")) $("#profile-phone").value = g.phone || "";
+    if ($("#profile-email")) $("#profile-email").value = g.email || "";
+    if ($("#profile-employment")) $("#profile-employment").value = g.employment_status || "";
+    if ($("#profile-education")) $("#profile-education").value = g.education_level || "";
+    if ($("#profile-availability")) $("#profile-availability").value = g.availability_hours || "";
+    if ($("#profile-internet")) $("#profile-internet").value = g.internet_access || "";
+    if ($("#profile-computer")) $("#profile-computer").value = g.has_computer || "";
+    if ($("#profile-comments")) $("#profile-comments").value = g.parent_comments || "";
+    
+    // Notas del docente
+    const notesDisplay = $("#guardian-teacher-notes-display");
+    if (notesDisplay) {
+      notesDisplay.textContent = g.teacher_notes || "Sin observaciones de vinculación registradas actualmente por los docentes.";
+      if (g.teacher_notes) {
+        notesDisplay.style.fontStyle = "normal";
+        notesDisplay.style.color = "var(--ink)";
+      } else {
+        notesDisplay.style.fontStyle = "italic";
+        notesDisplay.style.color = "var(--ink-soft)";
+      }
+    }
+    
+    // Renderizar estudiantes asignados
+    const listContainer = $("#assigned-children-list");
+    if (listContainer) {
+      if (!g.students || g.students.length === 0) {
+        listContainer.innerHTML = `<div class="muted" style="font-size:12.5px;">No tienes estudiantes vinculados a tu cargo.</div>`;
+      } else {
+        listContainer.innerHTML = g.students.map(s => `
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-sm); margin-bottom: 6px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              ${avatar(s.avatar_seed, s.full_name, "avatar--sm")}
+              <div>
+                <div style="font-size:13px; font-weight:600; color:var(--ink);">${escapeHTML(s.full_name)}</div>
+                <div style="font-size:11px; color:var(--ink-mute);">${escapeHTML(s.course)} · RUN: ${escapeHTML(s.run)}</div>
+              </div>
+            </div>
+            <button class="btn btn--sm btn--block remove-child-btn" data-student-id="${s.id}" type="button" style="width: auto; padding:4px 10px; font-size:11.5px; background:var(--risk-alto-wash); color:var(--risk-alto); border:1px solid var(--risk-alto);">Desvincular</button>
+          </div>
+        `).join("");
+        
+        listContainer.querySelectorAll(".remove-child-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const studentId = parseInt(btn.dataset.studentId);
+            if (confirm("¿Seguro que deseas desvincular a este estudiante de tu perfil de apoderado?")) {
+              const res = await apiDelete(`/api/guardian/${guardianId}/students/${studentId}`);
+              if (res && res.status === "success") {
+                toast("Estudiante desvinculado con éxito.");
+                await renderFamilyProfile();
+                
+                // Actualizar sesión local
+                const userSession = JSON.parse(localStorage.getItem("previaula_session") || "{}");
+                if (userSession.guardian_info) {
+                  userSession.guardian_info.students = userSession.guardian_info.students.filter(x => x.id !== studentId);
+                  localStorage.setItem("previaula_session", JSON.stringify(userSession));
+                  state.guardianInfo = userSession.guardian_info;
+                }
+                
+                pickFamilyChildren();
+                renderChildPills();
+                renderFamily();
+              }
+            }
+          });
+        });
+      }
+    }
+    
+    // Alerta de inconsistencia
+    const alertBox = $("#guardian-mismatch-alert");
+    const alertText = $("#guardian-mismatch-text");
+    if (alertBox && alertText) {
+      if (state.currentChild) {
+        const riskData = await apiGet(`/api/students/${state.currentChild}/risk`, null);
+        if (riskData && riskData.mismatch) {
+          alertText.textContent = riskData.mismatch_detail;
+          alertBox.style.display = "block";
+        } else {
+          alertBox.style.display = "none";
+        }
+      } else {
+        alertBox.style.display = "none";
+      }
     }
   }
 
