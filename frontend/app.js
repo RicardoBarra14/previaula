@@ -2027,22 +2027,27 @@
     const body = $("#chatbot-body");
     const optsContainer = $("#chatbot-options");
 
-    toggle.addEventListener("click", () => {
-      const isHidden = box.style.display === "none";
-      box.style.display = isHidden ? "flex" : "none";
-      box.setAttribute("aria-hidden", !isHidden);
-      if (isHidden) {
-        body.scrollTop = body.scrollHeight;
-      }
-    });
+    if (toggle && box && body) {
+      toggle.addEventListener("click", () => {
+        const isHidden = box.style.display === "none";
+        box.style.display = isHidden ? "flex" : "none";
+        box.setAttribute("aria-hidden", !isHidden);
+        if (isHidden) {
+          body.scrollTop = body.scrollHeight;
+        }
+      });
+    }
 
-    close.addEventListener("click", () => {
-      box.style.display = "none";
-      box.setAttribute("aria-hidden", "true");
-      stopBreathing();
-    });
+    if (close && box) {
+      close.addEventListener("click", () => {
+        box.style.display = "none";
+        box.setAttribute("aria-hidden", "true");
+        stopBreathing();
+      });
+    }
 
-    optsContainer.addEventListener("click", (e) => {
+    if (optsContainer) {
+      optsContainer.addEventListener("click", (e) => {
       const btn = e.target.closest(".chat-opt");
       if (!btn) return;
 
@@ -2478,40 +2483,42 @@
       });
     });
 
-    wellbeingForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const student = state.studentInfo || (state.students && state.students[0]) || {};
-      if (!student.id) return;
-      
-      let payload = {
-        student_id: student.id,
-        age_group: state.wellbeingAgeGroup,
-        needs_talk: $("#survey-needs-talk").checked
-      };
-      
-      if (state.wellbeingAgeGroup === "basica") {
-        payload.energy_mood = selectedMood || "☀️";
-        payload.safe_at_school = surveyBasicaSafe || "Sí";
-        payload.social_ok = surveyBasicaSocial || "Sí";
-      } else {
-        payload.stress_level = parseInt($("#survey-media-stress").value);
-        payload.safe_at_school = $("#survey-media-safe").value;
-        payload.social_ok = $("#survey-media-social").value;
-      }
-      
-      const res = await apiPost("/api/student/self-report", payload, { status: "registrado", needs_talk: payload.needs_talk });
-      if (res && res.status === "registrado") {
-        toast(res.needs_talk ? "Reporte enviado. Un psicólogo te contactará pronto." : "Reporte de bienestar enviado correctamente.");
-        wellbeingForm.reset();
-        selectedMood = "";
-        $$(".mood-btn").forEach(b => b.classList.remove("is-active"));
-        $$("#survey-basica-safe button, #survey-basica-social button").forEach(b => b.style.background = "var(--bg)");
+    if (wellbeingForm) {
+      wellbeingForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const student = state.studentInfo || (state.students && state.students[0]) || {};
+        if (!student.id) return;
         
-        // Recargar datos y refrescar alertas reactivamente
-        state.students = await apiGet("/api/students", state.students);
-        renderAlerts();
-      }
-    });
+        let payload = {
+          student_id: student.id,
+          age_group: state.wellbeingAgeGroup,
+          needs_talk: $("#survey-needs-talk").checked
+        };
+        
+        if (state.wellbeingAgeGroup === "basica") {
+          payload.energy_mood = selectedMood || "☀️";
+          payload.safe_at_school = surveyBasicaSafe || "Sí";
+          payload.social_ok = surveyBasicaSocial || "Sí";
+        } else {
+          payload.stress_level = parseInt($("#survey-media-stress").value);
+          payload.safe_at_school = $("#survey-media-safe").value;
+          payload.social_ok = $("#survey-media-social").value;
+        }
+        
+        const res = await apiPost("/api/student/self-report", payload, { status: "registrado", needs_talk: payload.needs_talk });
+        if (res && res.status === "registrado") {
+          toast(res.needs_talk ? "Reporte enviado. Un psicólogo te contactará pronto." : "Reporte de bienestar enviado correctamente.");
+          wellbeingForm.reset();
+          selectedMood = "";
+          $$(".mood-btn").forEach(b => b.classList.remove("is-active"));
+          $$("#survey-basica-safe button, #survey-basica-social button").forEach(b => b.style.background = "var(--bg)");
+          
+          // Recargar datos y refrescar alertas reactivamente
+          state.students = await apiGet("/api/students", state.students);
+          renderAlerts();
+        }
+      });
+    }
 
     // Chatbot flotante
     initChatbot();
