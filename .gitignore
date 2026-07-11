@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Base de datos (se genera automáticamente al arrancar)
+backend/previaula.db
+*.db
+*.sqlite
+
+# Tests cache
+.pytest_cache/
+
+# Configuración local del agente
+.agents/
+scratch/
+
+# Archivos temporales y de prueba
+files.zip
+PreviAula_preview.html
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

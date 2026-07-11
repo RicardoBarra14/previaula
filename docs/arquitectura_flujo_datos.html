@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PreviAula &ndash; Arquitectura y Flujo de Datos</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+:root {
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--border2:#484f58;
+  --text:#e6edf3;--text-muted:#8b949e;--text-soft:#c9d1d9;
+  --primary-h:#3fb950;--accent:#388bfd;--accent-h:#58a6ff;
+  --purple:#a371f7;--orange:#e3b341;--red:#f85149;--cyan:#76e3ea;
+  --shadow:0 8px 32px rgba(0,0,0,.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.hero{background:linear-gradient(135deg,#0d1117 0%,#161b22 40%,#0d2137 100%);border-bottom:1px solid var(--border);padding:60px 40px 48px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(56,139,253,.12) 0%,transparent 70%);}
+.hero-badge{display:inline-block;background:rgba(56,139,253,.15);border:1px solid rgba(56,139,253,.35);color:var(--accent-h);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:20px;}
+.hero h1{font-size:clamp(28px,5vw,52px);font-weight:800;background:linear-gradient(90deg,#e6edf3 0%,#58a6ff 60%,#a371f7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.15;}
+.hero p{color:var(--text-muted);font-size:15px;margin-top:14px;max-width:680px;margin-left:auto;margin-right:auto;line-height:1.7;}
+.legend{display:flex;justify-content:center;gap:24px;margin-top:32px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.page{max-width:1280px;margin:0 auto;padding:48px 24px;}
+h2.st{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.flow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:0;align-items:start;margin-bottom:64px;}
+.fc{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 8px;}
+.fct{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);text-align:center;margin-bottom:4px;}
+.n{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;transition:border-color .2s,transform .2s,box-shadow .2s;position:relative;}
+.n:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.n.a{border-color:rgba(46,160,67,.4);}.n.f{border-color:rgba(163,113,247,.4);border-style:dashed;}
+.n.al{border-color:rgba(248,81,73,.4);}.n.ou{border-color:rgba(56,139,253,.4);}
+.ni{font-size:18px;margin-bottom:6px;display:block;}.nt{font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:4px;}.nd{font-size:10.5px;color:var(--text-muted);line-height:1.5;}
+.nb{position:absolute;top:-7px;right:8px;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:2px 7px;border-radius:8px;}
+.bl{background:rgba(46,160,67,.2);color:var(--primary-h);border:1px solid rgba(46,160,67,.4);}
+.bf{background:rgba(163,113,247,.2);color:var(--purple);border:1px solid rgba(163,113,247,.4);}
+.ba{background:rgba(248,81,73,.2);color:var(--red);border:1px solid rgba(248,81,73,.4);}
+.pip{background:linear-gradient(135deg,var(--bg2) 0%,rgba(163,113,247,.04) 100%);border:1px dashed rgba(163,113,247,.4);border-radius:14px;padding:28px;margin-bottom:64px;}
+.pip h3{font-size:13px;font-weight:700;color:var(--purple);margin-bottom:20px;}
+.ps{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.pst{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:130px;}
+.psl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--purple);margin-bottom:4px;}
+.psti{font-weight:600;color:var(--text);font-size:11px;}.pss{color:var(--text-muted);font-size:10px;margin-top:2px;}
+.psa{font-size:20px;color:var(--purple);flex-shrink:0;}
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:64px;}
+.tc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s;}.tc:hover{border-color:var(--accent);}
+.th{background:var(--bg3);padding:10px 14px;font-size:12px;font-weight:700;color:var(--text);font-family:'Fira Code',monospace;border-bottom:1px solid var(--border);}
+.tr2{padding:8px 0;}.tro{display:flex;align-items:center;gap:8px;padding:3px 14px;font-family:'Fira Code',monospace;font-size:10px;}
+.cn{color:var(--text-soft);flex:1;}.ct{color:var(--cyan);font-size:9px;}.cpk{color:var(--orange);font-weight:700;font-size:9px;}.cfk{color:var(--purple);font-size:9px;}
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;margin-bottom:64px;}
+.rc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s,transform .2s;}.rc:hover{transform:translateY(-3px);border-color:var(--border2);}
+.rh{padding:16px 18px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+.ra{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.rn{font-size:14px;font-weight:700;}.rs{font-size:11px;color:var(--text-muted);}
+.rb{padding:12px 18px;}.rac{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;}.rac:last-child{border-bottom:none;}
+.rac .dot{font-size:14px;line-height:1;flex-shrink:0;}.rac .txt{color:var(--text-soft);line-height:1.5;}
+table.ft{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:48px;}
+.ft th{background:var(--bg3);border:1px solid var(--border);padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);}
+.ft td{border:1px solid var(--border);padding:9px 16px;color:var(--text-soft);vertical-align:top;}.ft tr:hover td{background:var(--bg2);}
+.sl{color:var(--primary-h);font-weight:700;font-size:11px;}.sfut{color:var(--purple);font-weight:700;font-size:11px;font-style:italic;}.sp{color:var(--orange);font-weight:700;font-size:11px;}
+.footer{border-top:1px solid var(--border);padding:32px;text-align:center;color:var(--text-muted);font-size:11px;}
+@media(max-width:900px){.flow{grid-template-columns:1fr 1fr;}}@media(max-width:600px){.flow{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-badge">Arquitectura de Datos &middot; PreviAula</div>
+  <h1>Flujo de Datos del Sistema<br>de Alerta Temprana</h1>
+  <p>Diagrama conceptual de la arquitectura actual y futura de <strong>PreviAula</strong>, sistema de prevenci&oacute;n de violencia escolar y deserci&oacute;n (JUNAEB&nbsp;/&nbsp;IVE). Muestra el flujo desde los actores hasta los m&oacute;dulos de predicci&oacute;n y alertas.</p>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:#3fb950"></span> Implementado (v1)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#e3b341"></span> Parcialmente implementado</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#a371f7"></span> Producto final (roadmap ML)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#f85149"></span> Alertas y salidas</span>
+  </div>
+</div>
+<div class="page">
+<h2 class="st">Flujo Principal de Datos</h2>
+<div class="flow">
+  <div class="fc"><div class="fct">Actores</div><div class="n a" ><span class="nb bl">Live</span><span class="ni">&#127752;</span><div class="nt">Estudiante</div><div class="nd">Autorreporte socioemocional, seguridad escolar, estado de &aacute;nimo, apoyo psicol&oacute;gico.</div></div><div class="n a" ><span class="nb bl">Live</span><span class="ni">&#128106;</span><div class="nt">Apoderado / Familia</div><div class="nd">Encuesta familiar (cohesi&oacute;n, seguridad percibida), justificaci&oacute;n de ausencias.</div></div><div class="n a" ><span class="nb bl">Live</span><span class="ni">&#128105;</span><div class="nt">Docente</div><div class="nd">Registro de asistencia diaria, notas por asignatura, reporte de incidentes.</div></div><div class="n a" ><span class="nb bl">Live</span><span class="ni">&#129485;</span><div class="nt">Orientador / Psic&oacute;logo</div><div class="nd">Asignaci&oacute;n de talleres preventivos, fichas y bit&aacute;coras de convivencia.</div></div><div class="n a" ><span class="nb bl">Live</span><span class="ni">&#127963;</span><div class="nt">Sostenedor Municipal</div><div class="nd">Vista comunal multi-establecimiento, KPIs comparativos y registro de colegios.</div></div></div>
+  <div class="fc"><div class="fct">Ingreso de Datos</div><div class="n a" ><span class="nb bl">FastAPI</span><span class="ni">&#128203;</span><div class="nt">Formulario de Bienestar</div><div class="nd">POST /api/student/self-report &mdash; Adaptado por edad (b&aacute;sica / media).</div></div><div class="n a" ><span class="nb bl">FastAPI</span><span class="ni">&#128202;</span><div class="nt">Encuesta Familiar</div><div class="nd">POST /api/guardian/survey &mdash; Cohesi&oacute;n, seguridad percibida, apoyo.</div></div><div class="n a" ><span class="nb bl">FastAPI</span><span class="ni">&#128197;</span><div class="nt">Registro de Asistencia</div><div class="nd">POST /api/attendance &mdash; Por fecha, curso y estudiante. Historial 60+ d&iacute;as.</div></div><div class="n a" ><span class="nb bl">FastAPI</span><span class="ni">&#9888;</span><div class="nt">Bit&aacute;cora de Incidentes</div><div class="nd">POST /api/incidents &mdash; Severidad, categor&iacute;a DEC (convivencia), fecha.</div></div><div class="n a" ><span class="nb bl">FastAPI</span><span class="ni">&#128221;</span><div class="nt">Calificaciones</div><div class="nd">POST /api/students/{id}/grades &mdash; Notas 1.0&ndash;7.0 por asignatura.</div></div></div>
+  <div class="fc"><div class="fct">Almacenamiento y Motor</div><div class="n a" style="border-color:rgba(227,179,65,.4)"><span class="ni">&#128451;</span><div class="nt">SQLite &middot; previaula.db</div><div class="nd">Tablas: Students, Guardians, AttendanceLogs, Incidents, GuardianSurveys, SelfReports, Grades, Activities.</div></div><div class="n a" ><span class="nb bl">Motor</span><span class="ni">&#9881;</span><div class="nt">compute_risk()</div><div class="nd">Score 0&ndash;100 ponderado: asistencia, incidentes, cohesi&oacute;n familiar, notas acad&eacute;micas.</div></div><div class="n al" ><span class="nb ba">Alerta</span><span class="ni">&#128269;</span><div class="nt">Detector de Inconsistencias</div><div class="nd">Cruza encuesta apoderado vs autorreporte estudiante (safe_at_school). Activa badge mismatch.</div></div><div class="n f" ><span class="nb bf">ML futuro</span><span class="ni">&#129504;</span><div class="nt">Modelo Predictivo XGBoost</div><div class="nd">Predice P(deserci&oacute;n), P(agresi&oacute;n) y P(crisis) a 30 d&iacute;as con historial real 12+ meses.</div></div><div class="n f" ><span class="nb bf">ML futuro</span><span class="ni">&#128200;</span><div class="nt">An&aacute;lisis Longitudinal MNAR</div><div class="nd">Encuesta omitida = se&ntilde;al de riesgo. Imputaci&oacute;n bayesiana de valores faltantes.</div></div></div>
+  <div class="fc"><div class="fct">Salidas del Sistema</div><div class="n al" ><span class="nb ba">Alerta</span><span class="ni">&#128680;</span><div class="nt">Alert Card &middot; Dashboard</div><div class="nd">Tarjeta con score, nivel de riesgo (alto/medio/bajo) y badge de mismatch familiar.</div></div><div class="n al" ><span class="nb ba">Alerta</span><span class="ni">&#128193;</span><div class="nt">Ficha Individual (Drawer)</div><div class="nd">Gauge de riesgo, barras de factores: acad&eacute;mico, violencia, familiar. Bit&aacute;cora completa.</div></div><div class="n ou" ><span class="ni">&#127919;</span><div class="nt">Recomendaci&oacute;n de Actividades</div><div class="nd">Motor de matching: asigna talleres seg&uacute;n factor de riesgo dominante del alumno.</div></div><div class="n ou" ><span class="ni">&#129302;</span><div class="nt">Chatbot de Apoyo</div><div class="nd">Asistente contextual: info escolar, contenci&oacute;n emocional, recursos psicol&oacute;gicos.</div></div><div class="n f" ><span class="nb bf">Futuro</span><span class="ni">&#128241;</span><div class="nt">Notificaci&oacute;n Autom&aacute;tica</div><div class="nd">WhatsApp/Email/SMS cuando score supera umbral cr&iacute;tico (&gt;70).</div></div></div>
+  <div class="fc"><div class="fct">Recepci&oacute;n y Acci&oacute;n</div><div class="n a" ><span class="nb bl">Live</span><span class="ni">&#129485;</span><div class="nt">Portal Orientador</div><div class="nd">Dashboard de alertas, asignaci&oacute;n de talleres, fichas de convivencia completa.</div></div><div class="n a" ><span class="nb bl">Live</span><span class="ni">&#128105;</span><div class="nt">Portal Docente</div><div class="nd">Planilla de asistencia, notas reactivas, alertas de su curso, incidentes.</div></div><div class="n a" ><span class="nb bl">Live</span><span class="ni">&#127963;</span><div class="nt">Portal Comunal</div><div class="nd">KPIs consolidados multi-establecimiento, comparativa de riesgos comunales.</div></div><div class="n a" ><span class="nb bl">Live</span><span class="ni">&#127752;</span><div class="nt">Portal Estudiante</div><div class="nd">Bienestar, talleres asignados, actividades online (Mindfulness, Rob&oacute;tica), chatbot.</div></div><div class="n f" ><span class="nb bf">Futuro</span><span class="ni">&#128202;</span><div class="nt">Panel JUNAEB / DAEM</div><div class="nd">Reportes agregados regionales para MINEDUC. Exportaci&oacute;n IVE din&aacute;mica.</div></div></div>
+</div>
+
+<h2 class="st">Motor de Predicci&oacute;n (Producto Final)</h2>
+<div class="pip">
+  <h3>&#129504; Pipeline de Aprendizaje Autom&aacute;tico</h3>
+  <div class="ps">
+    <div class="pst"><div class="psl">Paso 1</div><div class="psti">Recolecci&oacute;n</div><div class="pss">Asistencia, notas, incidentes, encuestas 12+ meses</div></div>
+    <span class="psa">&rarr;</span>
+    <div class="pst"><div class="psl">Paso 2</div><div class="psti">Preprocesamiento MNAR</div><div class="pss">Encuesta omitida = se&ntilde;al de riesgo. Imputaci&oacute;n bayesiana</div></div>
+    <span class="psa">&rarr;</span>
+    <div class="pst"><div class="psl">Paso 3</div><div class="psti">Feature Engineering</div><div class="pss">Slope de asistencia, peer_score, cohesion_delta</div></div>
+    <span class="psa">&rarr;</span>
+    <div class="pst"><div class="psl">Paso 4</div><div class="psti">Modelo XGBoost</div><div class="pss">P(deserci&oacute;n), P(agresi&oacute;n), P(crisis) a 30 d&iacute;as</div></div>
+    <span class="psa">&rarr;</span>
+    <div class="pst"><div class="psl">Paso 5</div><div class="psti">Explicabilidad SHAP</div><div class="pss">Barras de importancia por factor en ficha del orientador</div></div>
+    <span class="psa">&rarr;</span>
+    <div class="pst"><div class="psl">Paso 6</div><div class="psti">Alerta + Intervenci&oacute;n</div><div class="pss">Score &gt;70 &rarr; alerta cr&iacute;tica + taller asignado autom&aacute;ticamente</div></div>
+  </div>
+</div>
+
+<h2 class="st">Esquema de Base de Datos Relacional</h2>
+<div class="sg">
+  <div class="tc"><div class="th">&#128203; Students</div><div class="tr2"><div class="tro "><span class="cn">id</span><span class="cpk">PK</span></div><div class="tro "><span class="cn">run</span><span class="ct">TEXT</span></div><div class="tro "><span class="cn">full_name</span><span class="ct">TEXT</span></div><div class="tro "><span class="cn">course</span><span class="ct">TEXT</span></div><div class="tro "><span class="cn">ive_index</span><span class="ct">INT</span></div><div class="tro "><span class="cn">establishment_id</span><span class="cfk">&rarr; Establishments</span></div><div class="tro "><span class="cn">violence_risk_score</span><span class="ct">INT</span></div><div class="tro "><span class="cn">home_risk_score</span><span class="ct">INT</span></div><div class="tro "><span class="cn">academic_risk_score</span><span class="ct">INT</span></div></div></div>
+  <div class="tc"><div class="th">&#128106; Guardians</div><div class="tr2"><div class="tro "><span class="cn">id</span><span class="cpk">PK</span></div><div class="tro "><span class="cn">full_name</span><span class="ct">TEXT</span></div><div class="tro "><span class="cn">phone</span><span class="ct">TEXT</span></div><div class="tro "><span class="cn">email</span><span class="ct">TEXT</span></div><div class="tro "><span class="cn">relationship</span><span class="ct">TEXT</span></div><div class="tro "><span class="cn">response_rate</span><span class="ct">REAL</span></div><div class="tro "><span class="cn">cohesion_score</span><span class="ct">INT</span></div></div></div>
+  <div class="tc"><div class="th">&#128197; AttendanceLogs</div><div class="tr2"><div class="tro "><span class="cn">id</span><span class="cpk">PK</span></div><div class="tro "><span class="cn">student_id</span><span class="cfk">&rarr; Students</span></div><div class="tro "><span class="cn">log_date</span><span class="ct">DATE</span></div><div class="tro "><span class="cn">status</span><span class="ct">presente/ausente/atrasado</span></div><div class="tro "><span class="cn">excused</span><span class="ct">INT</span></div><div class="tro "><span class="cn">parent_present</span><span class="ct">INT</span></div></div></div>
+  <div class="tc"><div class="th">&#9888; Incidents</div><div class="tr2"><div class="tro "><span class="cn">id</span><span class="cpk">PK</span></div><div class="tro "><span class="cn">student_id</span><span class="cfk">&rarr; Students</span></div><div class="tro "><span class="cn">severity</span><span class="ct">baja/moderada/alta</span></div><div class="tro "><span class="cn">category</span><span class="ct">TEXT (DEC)</span></div><div class="tro "><span class="cn">description</span><span class="ct">TEXT</span></div><div class="tro "><span class="cn">log_date</span><span class="ct">DATE</span></div></div></div>
+  <div class="tc"><div class="th">&#128202; GuardianSurveys</div><div class="tr2"><div class="tro "><span class="cn">id</span><span class="cpk">PK</span></div><div class="tro "><span class="cn">guardian_id</span><span class="cfk">&rarr; Guardians</span></div><div class="tro "><span class="cn">student_id</span><span class="cfk">&rarr; Students</span></div><div class="tro "><span class="cn">cohesion_rate</span><span class="ct">INT 1-5</span></div><div class="tro" style="color:#f85149"><span class="cn">safe_at_school</span><span class="ct">Si / No</span></div><div class="tro "><span class="cn">survey_date</span><span class="ct">DATE</span></div></div></div>
+  <div class="tc"><div class="th">&#128172; StudentSelfReports</div><div class="tr2"><div class="tro "><span class="cn">id</span><span class="cpk">PK</span></div><div class="tro "><span class="cn">student_id</span><span class="cfk">&rarr; Students</span></div><div class="tro "><span class="cn">energy_mood</span><span class="ct">TEXT emoji</span></div><div class="tro" style="color:#f85149"><span class="cn">safe_at_school</span><span class="ct">Si / No</span></div><div class="tro "><span class="cn">stress_level</span><span class="ct">INT 1-5</span></div><div class="tro "><span class="cn">needs_talk</span><span class="ct">BOOL</span></div></div></div>
+  <div class="tc"><div class="th">&#127919; Activities</div><div class="tr2"><div class="tro "><span class="cn">id</span><span class="cpk">PK</span></div><div class="tro "><span class="cn">title</span><span class="ct">TEXT</span></div><div class="tro "><span class="cn">type</span><span class="ct">directa/indirecta</span></div><div class="tro "><span class="cn">target_risk</span><span class="ct">violence/home/academic</span></div><div class="tro "><span class="cn">delivery</span><span class="ct">online/presencial</span></div></div></div>
+  <div class="tc"><div class="th">&#128221; Grades</div><div class="tr2"><div class="tro "><span class="cn">id</span><span class="cpk">PK</span></div><div class="tro "><span class="cn">student_id</span><span class="cfk">&rarr; Students</span></div><div class="tro "><span class="cn">subject_id</span><span class="cfk">&rarr; Subjects</span></div><div class="tro "><span class="cn">grade</span><span class="ct">REAL 1.0-7.0</span></div><div class="tro "><span class="cn">term</span><span class="ct">INT 1-2</span></div><div class="tro "><span class="cn">recorded_by</span><span class="ct">TEXT</span></div></div></div>
+</div>
+
+<h2 class="st">Recorrido por Rol</h2>
+<div class="rg">
+  <div class="rc"><div class="rh"><div class="ra" style="background:rgba(56,139,253,.15)">&#127752;</div><div><div class="rn">Estudiante</div><div class="rs">Portal alumno</div></div></div><div class="rb"><div class="rac"><span class="dot">&#128203;</span><span class="txt">Autorreporte de bienestar (estado de &aacute;nimo, seguridad, estr&eacute;s)</span></div><div class="rac"><span class="dot">&#127919;</span><span class="txt">Ve talleres asignados y recomendaciones personalizadas por perfil</span></div><div class="rac"><span class="dot">&#129368;</span><span class="txt">Realiza actividades online (Mindfulness, desaf&iacute;os l&oacute;gicos) en la plataforma</span></div><div class="rac"><span class="dot">&#129302;</span><span class="txt">Chatbot para apoyo emocional o dudas del colegio</span></div></div></div>
+  <div class="rc"><div class="rh"><div class="ra" style="background:rgba(227,179,65,.15)">&#128106;</div><div><div class="rn">Apoderado</div><div class="rs">Portal familia</div></div></div><div class="rb"><div class="rac"><span class="dot">&#128202;</span><span class="txt">Consulta asistencia mensual con historial completo de su hijo/a</span></div><div class="rac"><span class="dot">&#128221;</span><span class="txt">Revisa calificaciones por asignatura y semestre</span></div><div class="rac"><span class="dot">&#9993;</span><span class="txt">Env&iacute;a justificaciones de ausencias</span></div><div class="rac"><span class="dot">&#128269;</span><span class="txt">Encuesta de cohesi&oacute;n familiar y percepci&oacute;n de seguridad escolar</span></div></div></div>
+  <div class="rc"><div class="rh"><div class="ra" style="background:rgba(46,160,67,.15)">&#128105;</div><div><div class="rn">Docente</div><div class="rs">Portal docencia</div></div></div><div class="rb"><div class="rac"><span class="dot">&#128197;</span><span class="txt">Registra asistencia diaria con selector de fecha hist&oacute;rica</span></div><div class="rac"><span class="dot">&#128221;</span><span class="txt">Ingresa notas 1.0&ndash;7.0 con rec&aacute;lculo autom&aacute;tico de promedios</span></div><div class="rac"><span class="dot">&#9888;</span><span class="txt">Registra incidentes de convivencia (categor&iacute;a DEC, severidad)</span></div><div class="rac"><span class="dot">&#128680;</span><span class="txt">Ve alertas de riesgo filtradas autom&aacute;ticamente por su curso</span></div></div></div>
+  <div class="rc"><div class="rh"><div class="ra" style="background:rgba(163,113,247,.15)">&#129485;</div><div><div class="rn">Orientador</div><div class="rs">Portal convivencia</div></div></div><div class="rb"><div class="rac"><span class="dot">&#128202;</span><span class="txt">Dashboard de alertas con filtrado por nivel de riesgo</span></div><div class="rac"><span class="dot">&#128193;</span><span class="txt">Fichas individuales con gauge, factores explicados y badge mismatch familiar</span></div><div class="rac"><span class="dot">&#127919;</span><span class="txt">Asigna talleres preventivos seg&uacute;n perfil de riesgo dominante</span></div><div class="rac"><span class="dot">&#128680;</span><span class="txt">Alertas de inconsistencia apoderado vs estudiante con acci&oacute;n recomendada</span></div></div></div>
+  <div class="rc"><div class="rh"><div class="ra" style="background:rgba(248,81,73,.15)">&#127963;</div><div><div class="rn">Sostenedor</div><div class="rs">Portal municipal</div></div></div><div class="rb"><div class="rac"><span class="dot">&#128508;</span><span class="txt">Vista comunal de todos los establecimientos con KPIs comparativos</span></div><div class="rac"><span class="dot">&#128200;</span><span class="txt">Promedios de notas, riesgo de violencia y riesgo familiar por colegio</span></div><div class="rac"><span class="dot">&#127979;</span><span class="txt">Registra nuevos establecimientos con IVE promedio</span></div><div class="rac"><span class="dot">&#128276;</span><span class="txt">Alertas tempranas comunales para intervenci&oacute;n preventiva</span></div></div></div>
+</div>
+
+<h2 class="st">Mapa de Funcionalidades</h2>
+<table class="ft">
+  <thead><tr><th>Funcionalidad</th><th>Descripci&oacute;n</th><th>Estado v1</th><th>Producto Final</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Riesgo Multidimensional</strong></td><td>Score 0-100 ponderado por inasistencias, incidentes, cohesi&oacute;n y notas</td><td><span class="sl">&bull; Implementado</span></td><td>Modelo ML XGBoost + SHAP</td></tr>
+    <tr><td><strong>Detecci&oacute;n de Inconsistencias</strong></td><td>Cruza encuesta familiar vs autorreporte alumno. Activa badge mismatch</td><td><span class="sl">&bull; Implementado</span></td><td>An&aacute;lisis sem&aacute;ntico NLP</td></tr>
+    <tr><td><strong>Autorreporte Socioemocional</strong></td><td>Preguntas adaptadas por edad: estado de &aacute;nimo, seguridad, estr&eacute;s</td><td><span class="sl">&bull; Implementado</span></td><td>Validaci&oacute;n psicom&eacute;trica GHQ</td></tr>
+    <tr><td><strong>Asistencia Hist&oacute;rica</strong></td><td>Por fecha, curso y estudiante. Selector de fecha en planilla docente</td><td><span class="sl">&bull; Implementado</span></td><td>Predicci&oacute;n patr&oacute;n de abandono</td></tr>
+    <tr><td><strong>Calificaciones Reactivas</strong></td><td>Notas 1.0-7.0 con recalibraci&oacute;n autom&aacute;tica del riesgo acad&eacute;mico</td><td><span class="sl">&bull; Implementado</span></td><td>Correlaci&oacute;n GPA vs deserci&oacute;n</td></tr>
+    <tr><td><strong>Cat&aacute;logo de Talleres</strong></td><td>8 actividades preventivas asignadas seg&uacute;n factor de riesgo dominante</td><td><span class="sl">&bull; Implementado</span></td><td>Recomendaci&oacute;n colaborativa</td></tr>
+    <tr><td><strong>Actividades Online</strong></td><td>Mindfulness y Rob&oacute;tica ejecutables dentro de la plataforma</td><td><span class="sl">&bull; Implementado</span></td><td>Gamificaci&oacute;n + seguimiento</td></tr>
+    <tr><td><strong>Alerta Temprana Comunal</strong></td><td>KPIs por establecimiento visibles al sostenedor para priorizar recursos</td><td><span class="sl">&bull; Implementado</span></td><td>Dashboard BI + mapa IVE</td></tr>
+    <tr><td><strong>Chatbot de Apoyo</strong></td><td>Flujos por opciones: informaci&oacute;n escolar y contenci&oacute;n emocional</td><td><span class="sp">&#9680; Parcial</span></td><td>LLM fine-tuned corpus escolar</td></tr>
+    <tr><td><strong>Predicci&oacute;n ML Deserci&oacute;n</strong></td><td>Probabilidad de abandono a 30 d&iacute;as</td><td><span class="sfut">&#9675; Roadmap</span></td><td>XGBoost + features MNAR</td></tr>
+    <tr><td><strong>Predicci&oacute;n ML Agresi&oacute;n</strong></td><td>Score P(agresi&oacute;n) basado en incidentes, cohesi&oacute;n y peer_score</td><td><span class="sfut">&#9675; Roadmap</span></td><td>Clasificador binario + umbral adaptivo</td></tr>
+    <tr><td><strong>Notificaciones Autom&aacute;ticas</strong></td><td>WhatsApp/Email cuando score supera umbral cr&iacute;tico (&gt;70)</td><td><span class="sfut">&#9675; Roadmap</span></td><td>Twilio / SendGrid</td></tr>
+    <tr><td><strong>Reportes JUNAEB / DAEM</strong></td><td>Exportaci&oacute;n IVE din&aacute;mica para MINEDUC</td><td><span class="sfut">&#9675; Roadmap</span></td><td>API SIGE / MINEDUC</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="footer">
+  <strong style="color:#c9d1d9">PreviAula &middot; Escuelas Seguras</strong><br>
+  Prototipo de Media Fidelidad &mdash; Universidad de Concepci&oacute;n &middot; Innovaci&oacute;n Tecnol&oacute;gica 2026<br>
+  <span style="font-family:monospace;font-size:10px;color:#484f58;display:block;margin-top:6px">FastAPI (Python 3.12) &middot; SQLite &middot; Vanilla JS &middot; Render.com/Railway &middot; JUNAEB IVE</span>
+</div>
+</body>
+</html>

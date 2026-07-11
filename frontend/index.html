@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PreviAula · Alerta temprana y convivencia escolar</title>
+  <meta name="description" content="Sistema de alerta temprana de deserción y convivencia escolar para colegios de alta vulnerabilidad (IVE JUNAEB)." />
+
+  <!-- Tipografías: Outfit (display) + Inter (cuerpo) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<!-- El perfil sensorial por defecto es el de bajo estímulo (hypersensitive) -->
+<body class="profile-hypersensitive is-logged-out">
+
+  <!-- ============================ LOGIN OVERLAY =========================== -->
+  <div id="login-overlay" class="login-overlay">
+    <div class="card login-card">
+      <div class="login-card__brand">
+        <div class="brand__mark" aria-hidden="true" style="margin: 0 auto 12px; background: var(--primary); padding: 8px; border-radius: 50%; width: 48px; height: 48px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#F3F7F5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 100%;">
+            <path d="M12 3l8 4v5c0 4.5-3.2 7.7-8 9-4.8-1.3-8-4.5-8-9V7l8-4z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <h2 style="font-family: var(--font-display); font-size: 24px; color: var(--primary); text-align: center;">PreviAula</h2>
+        <p style="font-size: 13px; color: var(--ink-soft); margin-top: 4px; text-align: center;">Sistema de Alerta Temprana y Convivencia</p>
+      </div>
+      <form id="login-form" class="form" style="margin-top: 16px;">
+        <div class="field">
+          <label class="field__label" for="login-username">Usuario</label>
+          <input type="text" id="login-username" class="select" required placeholder="Ej: profesor, apoderado, estudiante..." style="background: var(--bg); border: 1px solid var(--line-strong); padding: 10px; width: 100%; border-radius: var(--r-sm);" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="login-password">Contraseña</label>
+          <input type="password" id="login-password" class="select" required placeholder="••••••••" style="background: var(--bg); border: 1px solid var(--line-strong); padding: 10px; width: 100%; border-radius: var(--r-sm);" />
+        </div>
+        <div class="login-error" id="login-error" style="color: var(--risk-alto); font-size: 13px; display: none; margin-bottom: 12px; text-align: center;"></div>
+        <button class="btn btn--primary btn--block" type="submit">Ingresar al Sistema</button>
+      </form>
+
+      <!-- Formulario de Registro de Usuario -->
+      <form id="register-user-form" class="form" style="margin-top: 16px; display: none;">
+        <div class="field">
+          <label class="field__label" for="reg-fullname">Nombre Completo</label>
+          <input type="text" id="reg-fullname" class="select" required placeholder="Ej: Juan Pérez Díaz" style="background: var(--bg); border: 1px solid var(--line-strong); padding: 10px; width: 100%; border-radius: var(--r-sm);" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="reg-username">Nombre de Usuario</label>
+          <input type="text" id="reg-username" class="select" required placeholder="Ej: juan.perez" style="background: var(--bg); border: 1px solid var(--line-strong); padding: 10px; width: 100%; border-radius: var(--r-sm);" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="reg-password">Contraseña</label>
+          <input type="password" id="reg-password" class="select" required placeholder="••••••••" style="background: var(--bg); border: 1px solid var(--line-strong); padding: 10px; width: 100%; border-radius: var(--r-sm);" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="reg-role">Rol del Usuario</label>
+          <select id="reg-role" class="select" style="background: var(--bg); border: 1px solid var(--line-strong); padding: 10px; width: 100%; border-radius: var(--r-sm);">
+            <option value="profesor">Docente (Profesor)</option>
+            <option value="orientador">Orientador (Psicólogo)</option>
+            <option value="apoderado">Apoderado (Familia)</option>
+            <option value="estudiante">Estudiante</option>
+            <option value="funcionario">Dirección Municipal (Sostenedor)</option>
+          </select>
+        </div>
+        <div class="login-error" id="reg-error" style="color: var(--risk-alto); font-size: 13px; display: none; margin-bottom: 12px; text-align: center;"></div>
+        <button class="btn btn--accent btn--block" type="submit">Crear Cuenta e Ingresar</button>
+      </form>
+
+      <div style="margin-top: 12px; text-align: center;">
+        <a href="#" id="toggle-register-link" style="font-size: 12.5px; color: var(--primary); text-decoration: underline; font-weight:600;">¿No tienes cuenta? Regístrate aquí</a>
+      </div>
+
+      <div class="login-help" style="margin-top: 16px;">
+        <span class="mini-title" style="display: block; text-align: center; font-size: 11px; text-transform: uppercase; color: var(--ink-mute);">Cuentas de demostración:</span>
+        <div class="login-help__grid" style="font-size: 11px; color: var(--ink-soft); line-height: 1.5; margin-top: 6px; background: var(--bg-secondary); padding: 8px; border-radius: var(--r-sm);">
+          <strong>Docente:</strong> profesor / profesor123<br>
+          <strong>Orientador:</strong> orientador / orientador123<br>
+          <strong>Apoderado:</strong> apoderado / apoderado123<br>
+          <strong>Estudiante:</strong> estudiante / estudiante123<br>
+          <strong>Dirección:</strong> funcionario / funcionario123
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app">
+
+
+    <!-- ============================ BARRA LATERAL ======================== -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#F3F7F5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l8 4v5c0 4.5-3.2 7.7-8 9-4.8-1.3-8-4.5-8-9V7l8-4z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand__name">PreviAula</div>
+          <div class="brand__tag">Alerta temprana escolar</div>
+        </div>
+      </div>
+
+      <div class="side-label">Vistas por rol</div>
+      <nav class="roles" id="roles">
+        <button class="role-btn is-active" data-view="orientacion" type="button" id="btn-nav-orientacion">
+          <span class="role-btn__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a5 5 0 00-5 5c0 2 1 3 1 5H16c0-2 1-3 1-5a5 5 0 00-5-5z"/>
+              <path d="M9 17h6M10 20h4"/>
+            </svg>
+          </span>
+          <span class="role-btn__text">
+            <span class="role-btn__title">Orientación</span>
+            <span class="role-btn__sub">Psicólogo · Convivencia</span>
+          </span>
+        </button>
+
+        <button class="role-btn" data-view="docencia" type="button" id="btn-nav-docencia">
+          <span class="role-btn__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 5h18v11H3z"/>
+              <path d="M7 20h10M12 16v4"/>
+              <path d="M7 9h6M7 12h4"/>
+            </svg>
+          </span>
+          <span class="role-btn__text">
+            <span class="role-btn__title">Docencia</span>
+            <span class="role-btn__sub">Asistencia e incidentes</span>
+          </span>
+        </button>
+
+        <button class="role-btn" data-view="familia" type="button" id="btn-nav-familia">
+          <span class="role-btn__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 11l8-6 8 6"/>
+              <path d="M6 10v9h12v-9"/>
+              <path d="M10 19v-4h4v4"/>
+            </svg>
+          </span>
+          <span class="role-btn__text">
+            <span class="role-btn__title">Familia</span>
+            <span class="role-btn__sub">Apoderado · Mi pupilo</span>
+          </span>
+        </button>
+
+        <button class="role-btn" data-view="estudiante" type="button" id="btn-nav-estudiante">
+          <span class="role-btn__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </span>
+          <span class="role-btn__text">
+            <span class="role-btn__title">Estudiante</span>
+            <span class="role-btn__sub">Mis notas y bienestar</span>
+          </span>
+        </button>
+
+        <button class="role-btn" data-view="funcionario" type="button" id="btn-nav-funcionario">
+          <span class="role-btn__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+          </span>
+          <span class="role-btn__text">
+            <span class="role-btn__title">Dirección General</span>
+            <span class="role-btn__sub">Multiestablecimiento</span>
+          </span>
+        </button>
+      </nav>
+
+      <div class="sidebar__spacer"></div>
+
+      <div class="side-foot">
+        <!-- Conmutador de perfil sensorial -->
+        <div class="sensory">
+          <div class="sensory__head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/></svg>
+            Perfil sensorial
+          </div>
+          <div class="sensory__opts" id="sensory-opts">
+            <button class="sensory__opt is-active" data-profile="hypersensitive" type="button">Bajo estímulo</button>
+            <button class="sensory__opt" data-profile="hyposensitive" type="button">Estímulo suave</button>
+          </div>
+          <div class="sensory__hint" id="sensory-hint">Transiciones lentas y sin acentos intensos, pensado para hipersensibilidad sensorial.</div>
+        </div>
+
+        <a class="side-link" href="#" onclick="return false;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2l-.3-2.5H10l-.3 2.5a7 7 0 00-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 002 1.2l.3 2.5h4l.3-2.5a7 7 0 002-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>
+          Configuración
+        </a>
+        <a class="side-link" href="#" id="logout-btn" style="color: var(--risk-alto);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          Cerrar sesión
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ============================== CONTENIDO ========================== -->
+    <div class="content">
+
+      <header class="topbar">
+        <div class="topbar__titles">
+          <div class="topbar__title" id="view-title">Panel de orientación</div>
+          <div class="topbar__sub" id="view-sub">Escuela Los Aromos · Alta vulnerabilidad (IVE)</div>
+        </div>
+        <div class="topbar__spacer"></div>
+
+        <!-- Selector de establecimiento (solo visible para funcionarios y orientadores) -->
+        <div class="establishment-selector" id="establishment-selector-container" style="display:none; align-items:center; gap:8px; margin-right:16px;">
+          <label for="active-establishment-select" style="font-size:11.5px; color:var(--ink-soft); font-weight:600;">Colegio:</label>
+          <select id="active-establishment-select" class="select" style="padding:4px 8px; font-size:12px; min-width:180px; border-radius:var(--r-sm); border:1px solid var(--line); background:var(--surface);">
+            <!-- Cargado por JS -->
+          </select>
+        </div>
+
+        <div class="mode-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg>
+          Modo demostración (datos locales)
+        </div>
+
+        <label class="search" id="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          <input id="search-input" type="search" placeholder="Buscar estudiante, curso o incidente…" />
+        </label>
+
+        <div class="chip-ctx">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/><circle cx="12" cy="12" r="9"/></svg>
+          Chile · JUNAEB
+        </div>
+
+        <button class="bell" type="button" aria-label="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+          <span class="bell__dot"></span>
+        </button>
+      </header>
+
+      <main class="viewport">
+        <div class="view-wrap">
+
+          <!-- ========================= VISTA ORIENTACIÓN ================= -->
+          <section class="view is-active" id="view-orientacion">
+            <div class="hero">
+              <div class="hero__intro">
+                <span class="hero__eyebrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.5-3.2 7.7-8 9-4.8-1.3-8-4.5-8-9V7l8-4z"/></svg>
+                  Bienvenida de vuelta
+                </span>
+                <h1 class="hero__title">Hola, equipo de convivencia</h1>
+                <div class="hero__date" id="hero-date">Cargando fecha…</div>
+              </div>
+              <div class="kpis" id="hero-kpis">
+                <!-- KPIs inyectados por JS -->
+              </div>
+            </div>
+
+            <!-- Recomendación y Acciones para Convivencia -->
+            <div class="card family-note" style="margin-top: 16px; background: var(--accent-wash); border-left: 4px solid var(--accent);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px; color: var(--accent-deep); flex-shrink: 0; margin-top: 2px;">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              <div>
+                <h4 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 4px 0;">🤝 Acción Recomendada para el Equipo de Convivencia</h4>
+                <p style="font-size: 12px; color: var(--ink-soft); line-height: 1.45; margin: 0;">
+                  Para los alumnos con <strong>Riesgo Crítico (Nivel Alto/Rojo)</strong>, active de inmediato el protocolo de acompañamiento. 
+                  <strong style="color: var(--ink);">Medidas:</strong> Revise los factores explicativos SHAP en la ficha, cite al apoderado para verificar los datos de contacto y asigne un taller de mediación, apoyo emocional o reforzamiento académico desde la sección de actividades preventivas.
+                </p>
+              </div>
+            </div>
+
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">Alertas predictivas de deserción</h2>
+                <div class="section-sub">Estudiantes con mayor probabilidad de desvinculación en la ventana actual</div>
+              </div>
+              <button class="section-link" id="toggle-all-alerts" type="button">Ver todos →</button>
+            </div>
+            <div class="alert-grid" id="alert-grid">
+              <!-- Tarjetas de alerta inyectadas por JS -->
+            </div>
+
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">Bitácora de convivencia</h2>
+                <div class="section-sub">Registros recientes de asistencia e incidentes</div>
+              </div>
+            </div>
+            <div class="card panel">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th><th>Categoría</th><th>Estudiante</th>
+                    <th>Reporta</th><th>Gravedad</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="incident-tbody"><!-- filas por JS --></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ========================= VISTA DOCENCIA =================== -->
+          <section class="view" id="view-docencia">
+            <div class="section-head" style="margin-top:0">
+              <div>
+                <h2 class="section-title">Registro de la jornada</h2>
+                <div class="section-sub">Toma de asistencia rápida y registro de incidentes de convivencia</div>
+              </div>
+            </div>
+
+            <div class="course-tabs" id="course-tabs"><!-- pestañas de curso --></div>
+
+            <!-- Recomendación y Acciones para Docentes -->
+            <div class="card family-note" style="margin-top: 16px; background: var(--bg-secondary); border-left: 4px solid var(--primary-wash); margin-bottom: 16px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px; color: var(--primary); flex-shrink: 0; margin-top: 2px;">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              <div>
+                <h4 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 4px 0;">💡 Acción Recomendada para Profesores Jefes</h4>
+                <p style="font-size: 12px; color: var(--ink-soft); line-height: 1.45; margin: 0;">
+                  El registro diario y oportuno de la asistencia es el **insumo más crítico** para la prevención temprana de la deserción. 
+                  <strong style="color: var(--ink);">Medidas:</strong> En caso de ausencias consecutivas, intente contención directa en el aula. Si observa algún conflicto o cambio drástico de comportamiento, utilice el formulario de la derecha para reportar el incidente en la bitácora escolar de manera inmediata.
+                </p>
+              </div>
+            </div>
+
+            <div class="two-col">
+              <!-- Toma de asistencia -->
+              <div class="card">
+                <div class="section-head" style="margin:16px 16px 4px">
+                  <div>
+                    <h3 class="section-title" style="font-size:15px">Asistencia del Día</h3>
+                    <div class="section-sub" id="roster-course-label">—</div>
+                    <div style="margin-top: 6px; display: flex; align-items: center; gap: 8px;">
+                      <label for="attendance-date" style="font-size: 11.5px; color: var(--ink-soft);">Fecha:</label>
+                      <input type="date" id="attendance-date" value="2026-07-10" class="input" style="padding: 4px 8px; font-size: 12px; max-width: 140px; border-radius: var(--r-sm); border: 1px solid var(--line);">
+                    </div>
+                  </div>
+                </div>
+                <div class="roster" id="roster"><!-- filas de estudiantes --></div>
+                <div class="roster__foot">
+                  <div class="roster__summary" id="roster-summary">Marca la asistencia del curso.</div>
+                  <button class="btn btn--primary" id="save-attendance" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+                    Guardar asistencia
+                  </button>
+                </div>
+              </div>
+
+              <!-- Registro de incidente -->
+              <div class="stack-sm">
+                <div class="card">
+                  <div class="form">
+                    <div>
+                      <h3 class="section-title" style="font-size:15px">Registrar incidente</h3>
+                      <div class="section-sub">Convivencia o desregulación emocional</div>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="inc-student">Estudiante</label>
+                      <select class="select" id="inc-student"></select>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="inc-category">Categoría</label>
+                      <select class="select" id="inc-category">
+                        <option>Desregulación emocional</option>
+                        <option>Conflicto interpersonal</option>
+                        <option>Observación general</option>
+                        <option>Activación de protocolo</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <span class="field__label">Gravedad</span>
+                      <div class="seg-inline" id="inc-severity">
+                        <button type="button" data-sev="baja" class="is-on">Baja</button>
+                        <button type="button" data-sev="moderada">Moderada</button>
+                        <button type="button" data-sev="alta">Alta</button>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="inc-desc">Descripción</label>
+                      <textarea class="textarea" id="inc-desc" placeholder="Describe brevemente lo observado y el acompañamiento entregado…"></textarea>
+                    </div>
+                    <label class="check">
+                      <input type="checkbox" id="inc-protocol" />
+                      Activar protocolo de acompañamiento
+                    </label>
+                    <button class="btn btn--accent btn--block" id="save-incident" type="button">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                      Registrar incidente
+                    </button>
+                  </div>
+                </div>
+
+                <div class="card" style="padding:16px">
+                  <div class="mini-title">Registrado hoy</div>
+                  <div class="recent-list" id="recent-incidents">
+                    <div class="section-sub">Aún no registras incidentes en esta sesión.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Registro de Calificaciones -->
+            <div class="card" style="margin-top: 24px; padding: 20px;">
+              <h3 class="section-title" style="font-size: 15px; margin-bottom: 4px;">Registro de Calificaciones</h3>
+              <div class="section-sub" style="margin-bottom: 16px;">Ingrese o modifique las calificaciones de los estudiantes del curso.</div>
+              
+              <div style="display: flex; gap: 16px; align-items: start; flex-wrap: wrap; margin-bottom: 16px;">
+                <!-- Selector de Estudiante -->
+                <div class="field" style="flex: 1.5; min-width: 220px;">
+                  <label class="field__label" for="grades-student-select" style="font-size:11px; font-weight:600;">Seleccionar Estudiante</label>
+                  <select id="grades-student-select" class="select" style="width: 100%; padding: 6px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-sm);"></select>
+                </div>
+                
+                <!-- Asignatura -->
+                <div class="field" style="flex: 1; min-width: 150px;">
+                  <label class="field__label" for="grades-subject-select" style="font-size:11px; font-weight:600;">Asignatura</label>
+                  <select id="grades-subject-select" class="select" style="width: 100%; padding: 6px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-sm);">
+                    <option value="Lenguaje y Comunicación">Lenguaje y Comunicación</option>
+                    <option value="Matemáticas">Matemáticas</option>
+                    <option value="Historia, Geografía y Ciencias Sociales">Historia, Geografía y Ciencias Sociales</option>
+                    <option value="Ciencias Naturales">Ciencias Naturales</option>
+                  </select>
+                </div>
+
+                <!-- Nueva Calificación -->
+                <div class="field" style="width: 120px;">
+                  <label class="field__label" for="grades-new-value" style="font-size:11px; font-weight:600;">Nueva Nota</label>
+                  <input type="number" id="grades-new-value" min="1.0" max="7.0" step="0.1" placeholder="Ej: 6.2" class="select" style="width: 100%; padding: 6px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-sm);" />
+                </div>
+                
+                <button id="add-grade-btn" class="btn btn--accent" type="button" style="height: 36px; align-self: end; padding: 0 16px;">Agregar Nota</button>
+              </div>
+              
+              <!-- Tabla de notas actuales del alumno seleccionado -->
+              <div style="border-top: 1px solid var(--line); padding-top: 16px;">
+                <h4 style="font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 8px;">Notas Registradas para la Asignatura</h4>
+                <div id="grades-list-container" style="display: flex; gap: 8px; flex-wrap: wrap; min-height: 28px;">
+                  <!-- Inyectado por JS -->
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ========================= VISTA FAMILIA ==================== -->
+          <section class="view" id="view-familia">
+            <div class="card family-head">
+              <div class="family-head__intro">
+                <div class="family-head__hi">Hola, apoderado/a de</div>
+                <div class="family-head__name" id="family-name">—</div>
+                <div class="family-head__course" id="family-course">—</div>
+              </div>
+              <div>
+                <div class="side-label" style="color:var(--ink-mute);padding:0 0 8px">Tus estudiantes</div>
+                <div class="child-select" id="child-select"><!-- pills --></div>
+              </div>
+            </div>
+
+            <div class="family-tabs" style="display: flex; gap: 12px; margin-bottom: 16px;">
+              <button class="family-tab-btn is-active" data-family-tab="asistencia" type="button">Asistencia y Calendario</button>
+              <button class="family-tab-btn" data-family-tab="rendimiento" type="button">Notas y Rendimiento</button>
+              <button class="family-tab-btn" data-family-tab="justificaciones" type="button">Justificaciones y Encuestas</button>
+            </div>
+
+            <!-- Tab 1: Asistencia y Calendario -->
+            <div class="family-tab-content" id="family-tab-content-asistencia">
+              <div class="family-grid">
+                <div class="card att-ring-card">
+                  <h3>Asistencia del último mes</h3>
+                  <div id="family-ring"></div>
+                  <div class="att-legend">
+                    <span><i style="background:var(--surface-2)"></i> Presente</span>
+                    <span><i style="background:var(--risk-medio-wash)"></i> Atrasado</span>
+                    <span><i style="box-shadow:inset 0 0 0 1.5px var(--risk-alto-wash)"></i> Ausente</span>
+                  </div>
+                </div>
+
+                <div class="card att-cal-card">
+                  <h3>Calendario de asistencia</h3>
+                  <div class="muted">Días de clases de las últimas semanas</div>
+                  <div class="cal-grid" id="family-cal"><!-- celdas --></div>
+                </div>
+              </div>
+
+              <div class="family-info-cards" style="margin-top: 16px;">
+                <div class="card info-card">
+                  <div class="info-card__label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                    Próxima reunión de apoderados
+                  </div>
+                  <div class="info-card__value">Jueves 24 de julio, 18:30 h</div>
+                  <div class="info-card__note">Sala del curso · Se enviará confirmación por la libreta</div>
+                </div>
+                <div class="card info-card">
+                  <div class="info-card__label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H7l-3 3z"/></svg>
+                    Contacto de orientación
+                  </div>
+                  <div class="info-card__value">Equipo de Convivencia Escolar</div>
+                  <div class="info-card__note">Escríbenos para agendar una entrevista de acompañamiento</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 2: Notas y Rendimiento -->
+            <div class="family-tab-content" id="family-tab-content-rendimiento" style="display: none;">
+              <div class="card" style="padding: 16px;">
+                <div class="section-head" style="margin-top:0">
+                  <div>
+                    <h3 class="section-title" style="font-size: 16px;">Rendimiento Académico</h3>
+                    <div class="section-sub">Calificaciones del estudiante registradas en el sistema</div>
+                  </div>
+                  <div class="kpi" style="margin: 0;">
+                    <span class="kpi__label">Promedio General: </span>
+                    <strong class="kpi__val" id="family-gpa" style="font-size: 20px;">0.0</strong>
+                  </div>
+                </div>
+                <div class="grades-list" id="family-grades-container" style="margin-top: 12px;">
+                  <!-- Inyectado por JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 3: Justificaciones y Encuestas -->
+            <div class="family-tab-content" id="family-tab-content-justificaciones" style="display: none;">
+              <div class="two-col">
+                <!-- Formulario Justificativo -->
+                <div class="card" style="padding: 16px;">
+                  <h3 class="section-title" style="font-size: 15px; margin-bottom: 4px;">Justificar Inasistencia</h3>
+                  <div class="section-sub" style="margin-bottom: 12px;">Envía un justificativo por inasistencias pasadas</div>
+                  <form id="excuse-form" class="form">
+                    <div class="field">
+                      <label class="field__label" for="excuse-date">Fecha de la ausencia</label>
+                      <input type="date" id="excuse-date" class="select" required style="width: 100%; padding: 8px; border-radius: var(--r-sm); border: 1px solid var(--line-strong);" />
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="excuse-reason">Motivo</label>
+                      <textarea id="excuse-reason" class="textarea" required placeholder="Ej: Licencia médica, resfrío, problemas familiares..." style="width: 100%; min-height: 80px;"></textarea>
+                    </div>
+                    <button class="btn btn--primary btn--block" type="submit">Enviar Justificación</button>
+                  </form>
+                </div>
+
+                <!-- Encuesta Cohesión -->
+                <div class="card" style="padding: 16px;">
+                  <h3 class="section-title" style="font-size: 15px; margin-bottom: 4px;">Monitoreo de Apoyo Familiar</h3>
+                  <div class="section-sub" style="margin-bottom: 12px;">Cuestionario rápido de cohesión y vinculación</div>
+                  <form id="cohesion-form" class="form">
+                    <div class="field">
+                      <label class="field__label" for="cohesion-rate">¿Con qué frecuencia conversan en familia sobre el colegio?</label>
+                      <select class="select" id="cohesion-rate">
+                        <option value="4">Diariamente</option>
+                        <option value="3">Algunas veces a la semana</option>
+                        <option value="2">Rara vez (fines de semana)</option>
+                        <option value="1">Casi nunca</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="cohesion-help">¿Cuenta el estudiante con un espacio y tiempo guiado para estudiar?</label>
+                      <select class="select" id="cohesion-help">
+                        <option value="3">Sí, siempre con apoyo</option>
+                        <option value="2">A veces / Estudia solo</option>
+                        <option value="1">No cuenta con espacio/tiempo</option>
+                      </select>
+                    </div>
+                    <button class="btn btn--accent btn--block" type="submit">Enviar Respuestas</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div class="family-note" style="margin-top: 16px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.5-3.2 7.7-8 9-4.8-1.3-8-4.5-8-9V7l8-4z"/><path d="M12 8v4M12 15h.01"/></svg>
+              <p>Aquí ves la información de apoyo y asistencia de tu pupilo. Los reportes psicosociales detallados son <b>estrictamente confidenciales</b> y se tratan en entrevistas personales con orientación.</p>
+            </div>
+          </section>
+
+          <!-- ========================= VISTA ESTUDIANTE ================= -->
+          <section class="view" id="view-estudiante">
+            <div class="hero">
+              <div class="hero__intro">
+                <span class="hero__eyebrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Mi Portal Académico y de Bienestar
+                </span>
+                <h1 class="hero__title" id="student-hero-title">Hola, Estudiante</h1>
+                <div class="hero__date" id="student-hero-date">Establecimiento y Curso</div>
+              </div>
+              <div class="kpis">
+                <div class="kpi card">
+                  <div class="kpi__val" id="student-kpi-gpa">0.0</div>
+                  <div class="kpi__label">Mi Promedio General</div>
+                </div>
+                <div class="kpi card">
+                  <div class="kpi__val" id="student-kpi-att">0%</div>
+                  <div class="kpi__label">Mi Asistencia Anual</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="two-col">
+              <!-- Mis notas -->
+              <div class="card" style="padding: 16px;">
+                <h3 class="section-title" style="font-size: 16px; margin-bottom: 12px;">Mis Calificaciones</h3>
+                <div class="grades-list" id="student-grades-container">
+                  <!-- Inyectado por JS -->
+                </div>
+              </div>
+
+              <!-- Reporte socioemocional -->
+              <div class="card" style="padding: 16px;">
+                <h3 class="section-title" style="font-size: 16px; margin-bottom: 4px;">¿Cómo estás hoy?</h3>
+                <div class="section-sub" style="margin-bottom: 16px;">Cuéntale al equipo escolar de forma simple sobre tu jornada</div>
+                
+                <form id="wellbeing-form" class="form">
+                  <!-- Básica -->
+                  <div id="survey-basica" class="survey-section" style="display: none;">
+                    <div class="field">
+                      <span class="field__label">¿Cómo te sientes hoy?</span>
+                      <div class="mood-emojis" style="display: flex; gap: 16px; margin-top: 8px;">
+                        <button type="button" class="mood-btn" data-val="☀️" style="font-size: 32px; background: none; border: 2px solid transparent; border-radius: var(--r-md); padding: 8px; cursor: pointer; transition: all var(--dur) var(--ease);">☀️</button>
+                        <button type="button" class="mood-btn" data-val="☁️" style="font-size: 32px; background: none; border: 2px solid transparent; border-radius: var(--r-md); padding: 8px; cursor: pointer; transition: all var(--dur) var(--ease);">☁️</button>
+                        <button type="button" class="mood-btn" data-val="🌧️" style="font-size: 32px; background: none; border: 2px solid transparent; border-radius: var(--r-md); padding: 8px; cursor: pointer; transition: all var(--dur) var(--ease);">🌧️</button>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span class="field__label">¿Te gusta estar en tu sala de clases?</span>
+                      <div class="seg-inline" id="survey-basica-safe" style="margin-top: 6px; display: flex; gap: 8px;">
+                        <button type="button" data-val="Sí" style="flex: 1; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--bg); cursor: pointer;">Sí</button>
+                        <button type="button" data-val="No" style="flex: 1; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--bg); cursor: pointer;">No</button>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span class="field__label">¿Pudiste compartir con compañeros en el recreo?</span>
+                      <div class="seg-inline" id="survey-basica-social" style="margin-top: 6px; display: flex; gap: 8px;">
+                        <button type="button" data-val="Sí" style="flex: 1; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--bg); cursor: pointer;">Sí</button>
+                        <button type="button" data-val="No" style="flex: 1; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--bg); cursor: pointer;">No</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Media -->
+                  <div id="survey-media" class="survey-section" style="display: none;">
+                    <div class="field">
+                      <label class="field__label" for="survey-media-stress">Nivel de estrés o agobio con las tareas (1 al 5)</label>
+                      <select class="select" id="survey-media-stress" style="width: 100%; padding: 8px; border-radius: var(--r-sm);">
+                        <option value="1">1 - Muy bajo / Sin preocupaciones</option>
+                        <option value="2">2 - Bajo</option>
+                        <option value="3">3 - Moderado / Manejable</option>
+                        <option value="4">4 - Alto</option>
+                        <option value="5">5 - Muy alto / Colapsado</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="survey-media-safe">¿Te has sentido seguro y respetado en el establecimiento hoy?</label>
+                      <select class="select" id="survey-media-safe" style="width: 100%; padding: 8px; border-radius: var(--r-sm);">
+                        <option value="Sí">Sí, plenamente</option>
+                        <option value="A veces">A veces / Regular</option>
+                        <option value="No">No me he sentido seguro</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="survey-media-social">Ambiente de convivencia entre pares</label>
+                      <select class="select" id="survey-media-social" style="width: 100%; padding: 8px; border-radius: var(--r-sm);">
+                        <option value="Bueno">Bueno / Sin conflictos</option>
+                        <option value="Regular">Normal / Distante</option>
+                        <option value="Malo">Malo / Tensión o peleas</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="field" style="margin-top: 16px;">
+                    <label class="check">
+                      <input type="checkbox" id="survey-needs-talk" />
+                      Solicito conversar de manera confidencial con la dupla psicosocial
+                    </label>
+                  </div>
+                  
+                  <button class="btn btn--accent btn--block" type="submit" style="margin-top: 12px;">Enviar Reporte</button>
+                </form>
+              </div>
+
+              <!-- Talleres y Actividades -->
+              <div class="card" style="padding: 16px; grid-column: span 2; margin-top: 16px;">
+                <h3 class="section-title" style="font-size: 16px; margin-bottom: 4px;">Mis Talleres y Actividades Preventivas</h3>
+                <div class="section-sub" style="margin-bottom: 12px;">Programas recomendados y asignados para apoyar tu desarrollo y convivencia escolar</div>
+                <div id="student-activities-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+                  <!-- Inyectado por JS -->
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ========================= VISTA FUNCIONARIO ================= -->
+          <section class="view" id="view-funcionario">
+            <div class="hero">
+              <div class="hero__intro">
+                <span class="hero__eyebrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                  </svg>
+                  Dirección General de Sostenedores
+                </span>
+                <h1 class="hero__title">Monitoreo Comunal de Establecimientos</h1>
+                <div class="hero__date">Panel consolidado de administración y asistencia agregada</div>
+              </div>
+              <div class="kpis" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+                <div class="kpi card">
+                  <div class="kpi__val" id="off-kpi-schools">3</div>
+                  <div class="kpi__label">Establecimientos</div>
+                </div>
+                <div class="kpi card">
+                  <div class="kpi__val" id="off-kpi-students">0</div>
+                  <div class="kpi__label">Matrícula Comunal</div>
+                </div>
+                <div class="kpi card">
+                  <div class="kpi__val" id="off-kpi-alerts" style="color: var(--risk-alto);">0</div>
+                  <div class="kpi__label">Estudiantes Críticos</div>
+                </div>
+                <div class="kpi card">
+                  <div class="kpi__val" id="off-kpi-gpa">0.0</div>
+                  <div class="kpi__label">Promedio Notas</div>
+                </div>
+                <div class="kpi card">
+                  <div class="kpi__val" id="off-kpi-violence" style="color: var(--risk-medio);">0%</div>
+                  <div class="kpi__label">Riesgo Violencia Prom.</div>
+                </div>
+                <div class="kpi card">
+                  <div class="kpi__val" id="off-kpi-home" style="color: var(--ink-soft);">0%</div>
+                  <div class="kpi__label">Riesgo Familiar Prom.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Banner de Alerta Temprana y Acciones Recomendadas -->
+            <div class="card family-note" style="margin-top: 16px; background: var(--risk-medio-wash); border-left: 4px solid var(--risk-medio);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px; color: var(--risk-medio); flex-shrink: 0; margin-top: 2px;">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <div>
+                <h4 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 4px 0;">🏛️ Gestión Preventiva de Sostenedores (Alerta Temprana)</h4>
+                <p style="font-size: 12px; color: var(--ink-soft); line-height: 1.45; margin: 0;">
+                  Prevenir la violencia y deserción escolar mediante alertas tempranas a nivel municipal es significativamente <strong>más eficaz y hasta un 70% menos costoso</strong> que gestionar reinserciones o sanciones tardías.
+                  <br><strong style="color: var(--ink);">Acción Recomendada:</strong> Analice la tabla comparativa. Si detecta establecimientos con promedios de notas &lt; 5.0 o riesgos de violencia &gt; 45%, priorice la asignación de recursos comunales para el despliegue de los talleres y duplas de convivencia escolar en esas escuelas.
+                </p>
+              </div>
+            </div>
+
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">Análisis de Desempeño y Vulnerabilidad Escolar</h2>
+                <div class="section-sub">Comparación de asistencia general, incidentes del último mes e índices IVE</div>
+              </div>
+            </div>
+            
+            <div class="card panel" style="overflow-x: auto;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Establecimiento</th>
+                    <th>Comuna</th>
+                    <th style="text-align: center;">Matrícula</th>
+                    <th style="text-align: center;">Asistencia</th>
+                    <th style="text-align: center;">Prom. Notas</th>
+                    <th style="text-align: center;">Riesgo Violencia</th>
+                    <th style="text-align: center;">Riesgo Hogar</th>
+                    <th style="text-align: center;">Alumnos Críticos</th>
+                    <th style="text-align: center;">Incidentes</th>
+                    <th style="text-align: center;">IVE Promedio</th>
+                  </tr>
+                </thead>
+                <tbody id="official-establishments-tbody">
+                  <!-- Inyectado por JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Registro de Nuevo Establecimiento -->
+            <div class="card" style="margin-top: 24px; padding: 20px;">
+              <h3 class="section-title" style="font-size: 16px; margin-bottom: 4px;">Registrar Nuevo Establecimiento</h3>
+              <div class="section-sub" style="margin-bottom: 16px;">Registre un nuevo centro escolar bajo administración municipal para incorporarlo en el sistema de alerta temprana.</div>
+              <form id="register-establishment-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end;">
+                <div class="field">
+                  <label class="field__label" for="est-name" style="font-size:11px; font-weight:600;">Nombre del Colegio</label>
+                  <input type="text" id="est-name" required placeholder="Ej: Liceo Bicentenario San Carlos" class="select" style="width:100%; padding:6px 10px; background:var(--bg); border:1px solid var(--line); border-radius:var(--r-sm);" />
+                </div>
+                <div class="field">
+                  <label class="field__label" for="est-comuna" style="font-size:11px; font-weight:600;">Comuna</label>
+                  <input type="text" id="est-comuna" required placeholder="Ej: La Pintana" class="select" style="width:100%; padding:6px 10px; background:var(--bg); border:1px solid var(--line); border-radius:var(--r-sm);" />
+                </div>
+                <div class="field">
+                  <label class="field__label" for="est-ive" style="font-size:11px; font-weight:600;">IVE Promedio (%)</label>
+                  <input type="number" id="est-ive" min="0" max="100" required placeholder="Ej: 82" class="select" style="width:100%; padding:6px 10px; background:var(--bg); border:1px solid var(--line); border-radius:var(--r-sm);" />
+                </div>
+                <button type="submit" class="btn btn--primary" style="padding:8px 12px; font-size:12px; height: 34px;">Agregar Establecimiento</button>
+              </form>
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ============================ CHATBOT FLOTANTE ========================= -->
+  <div class="chatbot-widget" id="chatbot-widget">
+    <button class="chatbot-toggle" id="chatbot-toggle" type="button" aria-label="Abrir asistente virtual">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    </button>
+    <div class="chatbot-box" id="chatbot-box" aria-hidden="true" style="display: none;">
+      <div class="chatbot-head">
+        <div class="chatbot-avatar">🤖</div>
+        <div>
+          <div class="chatbot-title">Asistente PreviAula</div>
+          <div class="chatbot-status">En línea · Orientación</div>
+        </div>
+        <button class="chatbot-close" id="chatbot-close" type="button">&times;</button>
+      </div>
+      <div class="chatbot-body" id="chatbot-body">
+        <div class="chat-msg bot">
+          <div class="chat-msg__bubble">¡Hola! Soy el asistente virtual de PreviAula. ¿En qué te puedo ayudar hoy? Selecciona una de las opciones para comenzar.</div>
+        </div>
+      </div>
+      <div class="chatbot-foot" id="chatbot-options">
+        <button class="chat-opt" data-flow="info" type="button">Información del Colegio</button>
+        <button class="chat-opt" data-flow="emotion" type="button">Apoyo Emocional / Contención</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ PANEL DE FICHA ========================= -->
+  <div class="drawer-scrim" id="drawer-scrim"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer__head" id="drawer-head"><!-- por JS --></div>
+    <div class="drawer__body" id="drawer-body"><!-- por JS --></div>
+  </aside>
+
+  <!-- =============================== TOASTS ============================== -->
+  <div class="toast-wrap" id="toast-wrap"></div>
+
+
+  <!-- ============================ MODAL ACTIVIDAD ONLINE =================== -->
+  <div id="activity-overlay" class="login-overlay" style="display: none; justify-content: center; align-items: center; z-index: 1100;">
+    <div class="card" style="width: 100%; max-width: 480px; padding: 24px; position: relative; border-radius: var(--r-md); box-shadow: var(--shadow-lg);">
+      <button id="activity-modal-close" style="position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink-soft);">&times;</button>
+      
+      <div id="activity-modal-content">
+        <!-- Inyectado dinámicamente según el taller -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Respaldo de datos (se usa solo si la API no responde) -->
+  <script src="mock-data.js"></script>
+  <!-- Lógica de la aplicación -->
+  <script src="app.js"></script>
+</body>
+</html>
