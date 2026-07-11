@@ -327,6 +327,52 @@
           return { status: "actualizado" };
         }
       }
+      if (path.includes("/manual-mismatch")) {
+        const parts = path.split("/");
+        const studentId = parseInt(parts[3]);
+        
+        // 1. Buscar y actualizar en el listado de estado de la aplicación
+        const student = state.students.find(s => s.id === studentId);
+        if (student) {
+          student.manual_mismatch = body.manual_mismatch;
+          if (!student.risk) student.risk = {};
+          if (!student.risk.mismatches) student.risk.mismatches = [];
+          
+          // Limpiar mismatch manual previo de la lista
+          student.risk.mismatches = student.risk.mismatches.filter(m => !m.startsWith("Manual (Docente):"));
+          
+          if (body.manual_mismatch) {
+            student.risk.mismatch = true;
+            student.risk.mismatches.push(`Manual (Docente): ${body.manual_mismatch}`);
+          } else {
+            // Revisar si quedan automáticas
+            const hasAuto = student.risk.mismatches.some(m => !m.startsWith("Manual (Docente):"));
+            student.risk.mismatch = hasAuto;
+          }
+          student.risk.mismatch_detail = student.risk.mismatches.length ? student.risk.mismatches[0] : "";
+        }
+        
+        // 2. Buscar y actualizar en MOCK.details para que persista al abrir la ficha
+        if (MOCK.details && MOCK.details[studentId]) {
+          const detail = MOCK.details[studentId];
+          detail.manual_mismatch = body.manual_mismatch;
+          if (!detail.risk) detail.risk = {};
+          if (!detail.risk.mismatches) detail.risk.mismatches = [];
+          
+          detail.risk.mismatches = detail.risk.mismatches.filter(m => !m.startsWith("Manual (Docente):"));
+          
+          if (body.manual_mismatch) {
+            detail.risk.mismatch = true;
+            detail.risk.mismatches.push(`Manual (Docente): ${body.manual_mismatch}`);
+          } else {
+            const hasAuto = detail.risk.mismatches.some(m => !m.startsWith("Manual (Docente):"));
+            detail.risk.mismatch = hasAuto;
+          }
+          detail.risk.mismatch_detail = detail.risk.mismatches.length ? detail.risk.mismatches[0] : "";
+        }
+        
+        return { status: "success", message: "Inconsistencia manual actualizada (Mock)." };
+      }
     } else { // GET
       if (path.includes("/attendance")) {
         // e.g. /api/attendance?course=7%C2%B0%20B%C3%A1sico%20A&date=2026-07-10

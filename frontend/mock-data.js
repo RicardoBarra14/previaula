@@ -232,8 +232,9 @@ window.PREVIAULA_MOCK = {
       "raw_value": 90
      }
     ],
-    "mismatch": false,
-    "mismatch_detail": ""
+    "mismatch": true,
+    "mismatch_detail": "Seguridad: El apoderado reporta el liceo como seguro, pero el estudiante indica sentirse inseguro.",
+    "mismatches": ["Seguridad: El apoderado reporta el liceo como seguro, pero el estudiante indica sentirse inseguro."]
    }
   },
   {
@@ -1491,8 +1492,9 @@ window.PREVIAULA_MOCK = {
      }
     ],
     "window_days": 30,
-    "mismatch": false,
-    "mismatch_detail": ""
+    "mismatch": true,
+    "mismatch_detail": "Seguridad: El apoderado reporta el liceo como seguro, pero el estudiante indica sentirse inseguro.",
+    "mismatches": ["Seguridad: El apoderado reporta el liceo como seguro, pero el estudiante indica sentirse inseguro."]
    },
    "incidents": [
     {
