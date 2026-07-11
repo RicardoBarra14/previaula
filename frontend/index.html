@@ -210,6 +210,12 @@
       <div class="sidebar__spacer"></div>
 
       <div class="side-foot">
+        <!-- Botón de Guía / Glosario de datos -->
+        <button class="side-link" id="btn-glosario-ayuda" style="background:none; border:none; width:100%; text-align:left; cursor:pointer; margin-bottom:12px; display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:var(--r-sm); color:var(--ink-soft); transition: background 0.2s;" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+          <span style="font-size:13px; font-weight:600;">Guía e Interpretación</span>
+        </button>
+
         <!-- Conmutador de perfil sensorial -->
         <div class="sensory">
           <div class="sensory__head">
@@ -1025,6 +1031,72 @@
       
       <div id="activity-modal-content">
         <!-- Inyectado dinámicamente según el taller -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Glosario de Interpretación de Datos -->
+  <div class="modal" id="modal-glosario" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); padding: 24px; border-radius: var(--r-md); max-width: 650px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
+        <h2 style="font-size: 18px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; margin: 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          Guía de Interpretación y Glosario de Datos
+        </h2>
+        <button id="close-glosario-btn" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink-soft); line-height: 1;">&times;</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 18px; font-size: 13.5px; line-height: 1.6;">
+        
+        <!-- Semáforos de Riesgo -->
+        <div>
+          <h4 style="font-size: 14px; font-weight: 700; margin-top: 0; margin-bottom: 6px; color: var(--ink);">🚥 Semáforos de Riesgo General</h4>
+          <p style="color: var(--ink-soft); margin-top: 0; margin-bottom: 8px;">El puntaje de deserción general oscila de <strong>0 a 100</strong> y se clasifica en tres niveles de alerta predictiva:</p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+            <div style="background: var(--risk-alto-wash); border: 1px solid var(--risk-alto); padding: 8px; border-radius: var(--r-sm);">
+              <span style="color: var(--risk-alto); font-weight: 700; font-size:12px;">🔴 RIESGO ALTO (80-100)</span>
+              <div style="font-size: 11px; margin-top: 4px; color: var(--ink-soft); line-height: 1.3;">Desvinculación inminente. Requiere acción urgente (psicólogo/derivación).</div>
+            </div>
+            <div style="background: var(--risk-medio-wash); border: 1px solid var(--risk-medio); padding: 8px; border-radius: var(--r-sm);">
+              <span style="color: var(--risk-medio); font-weight: 700; font-size:12px;">🟡 RIESGO MODERADO (50-79)</span>
+              <div style="font-size: 11px; margin-top: 4px; color: var(--ink-soft); line-height: 1.3;">Señales de alerta presentes. Requiere asignación de talleres y tutoría.</div>
+            </div>
+            <div style="background: var(--surface-2); border: 1px solid var(--line); padding: 8px; border-radius: var(--r-sm);">
+              <span style="color: var(--ink-soft); font-weight: 700; font-size:12px;">🟢 RIESGO BAJO (0-49)</span>
+              <div style="font-size: 11px; margin-top: 4px; color: var(--ink-soft); line-height: 1.3;">Situación regular estable. Monitoreo pasivo habitual.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dimensiones del Riesgo -->
+        <div>
+          <h4 style="font-size: 14px; font-weight: 700; margin-top: 0; margin-bottom: 6px; color: var(--ink);">🏷️ Etiquetas Multidimensionales</h4>
+          <p style="color: var(--ink-soft); margin-top: 0; margin-bottom: 8px;">Miden la vulnerabilidad en tres áreas críticas de desarrollo del alumno:</p>
+          <ul style="padding-left: 20px; color: var(--ink-soft); display: flex; flex-direction: column; gap: 6px; margin: 0;">
+            <li><strong>🎓 Acad (Riesgo Académico)</strong>: Basado en el promedio general del alumno, la tendencia de notas rojas, inasistencia a evaluaciones y la tasa de atrasos recurrentes.</li>
+            <li><strong>🤝 Viol (Riesgo de Convivencia)</strong>: Mide incidentes reportados en la bitácora escolar, peleas registradas, suspensiones e indicadores de victimización socioemocional.</li>
+            <li><strong>🏠 Hogar (Riesgo Familiar)</strong>: Evalúa la baja cohesión familiar reportada por el apoderado, inasistencia a reuniones de curso, y dificultades socioeconómicas (acceso a internet o computador).</li>
+          </ul>
+        </div>
+
+        <!-- Explicación SHAP -->
+        <div>
+          <h4 style="font-size: 14px; font-weight: 700; margin-top: 0; margin-bottom: 6px; color: var(--ink);">📊 Explicabilidad (Contribución Ponderada)</h4>
+          <p style="color: var(--ink-soft); margin-top: 0; margin-bottom: 0;">
+            Los porcentajes mostrados como <em>"Inasistencia 71%, Reuniones omitidas 17%"</em> representan la justificación matemática de la predicción. Detallan exactamente qué factores de riesgo (personales, de asistencia o familiares) están empujando más el puntaje global hacia arriba.
+          </p>
+        </div>
+
+        <!-- Inconsistencias de Datos -->
+        <div style="background: var(--surface-2); padding: 12px; border-radius: var(--r-sm); border-left: 4px solid var(--primary); margin-top: 4px;">
+          <h4 style="font-size: 14px; font-weight: 700; margin-top: 0; margin-bottom: 4px; color: var(--primary);">⚠️ ¿Qué son las Inconsistencias de Seguridad?</h4>
+          <p style="color: var(--ink-soft); margin-top: 0; margin-bottom: 0; line-height: 1.45;">
+            Se disparan cuando hay diferencias críticas en la autoevaluación:
+            <br>• <strong>Automática:</strong> El estudiante reporta sentirse "Inseguro" pero el apoderado declara el liceo como "Totalmente Seguro".
+            <br>• <strong>Manual:</strong> Contradicciones detectadas directamente por el docente/orientador en entrevistas individuales.
+          </p>
+        </div>
+
       </div>
     </div>
   </div>

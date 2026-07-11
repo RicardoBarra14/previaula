@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS Students (
     violence_risk_score INTEGER NOT NULL DEFAULT 15,
     home_risk_score     INTEGER NOT NULL DEFAULT 20,
     academic_risk_score INTEGER NOT NULL DEFAULT 25,
+    manual_mismatch     TEXT DEFAULT NULL,
     FOREIGN KEY (guardian_id) REFERENCES Guardians(id),
     FOREIGN KEY (establishment_id) REFERENCES Establishments(id)
 );

@@ -912,6 +912,15 @@
               <div class="incident-item__desc">${escapeHTML(i.description)}</div>
             </div>`).join("") : `<div class="section-sub">Sin incidentes registrados.</div>`}
         </div>
+      </div>
+      
+      <div style="margin-top: 16px;">
+        <div class="mini-title">Alertas e Inconsistencias Manuales</div>
+        <div style="padding: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-sm);">
+          <label class="field__label" for="drawer-manual-mismatch" style="font-size:11.5px; font-weight:600; color:var(--ink-soft); display:block; margin-bottom:6px;">Reportar Inconsistencia Manual (No detectada automáticamente)</label>
+          <textarea id="drawer-manual-mismatch" class="textarea" placeholder="Ej: En entrevista, el estudiante revela acoso escolar que omite en encuestas..." style="width: 100%; min-height: 55px; font-size:12px; padding: 6px; margin-bottom: 8px;">${escapeHTML(detail.manual_mismatch || "")}</textarea>
+          <button type="button" class="btn btn--accent btn--sm" id="save-manual-mismatch-btn" data-student-id="${detail.id}" style="padding: 4px 12px; font-size: 11.5px; width: auto;">Guardar Inconsistencia</button>
+        </div>
       </div>`;
 
     $("#drawer").classList.add("is-open");
@@ -920,6 +929,43 @@
     $("#drawer-close").addEventListener("click", closeDrawer);
     animateGauges($("#drawer"));
     animateBars($("#drawer"));
+
+    // Guardar Inconsistencia Manual
+    const saveManualMismatchBtn = $("#save-manual-mismatch-btn");
+    if (saveManualMismatchBtn) {
+      saveManualMismatchBtn.addEventListener("click", async () => {
+        const studentId = saveManualMismatchBtn.dataset.studentId;
+        const mismatchText = $("#drawer-manual-mismatch").value.trim();
+        const ok = await apiPut(`/api/students/${studentId}/manual-mismatch`, { manual_mismatch: mismatchText || null });
+        if (ok) {
+          toast("Inconsistencia manual actualizada exitosamente.");
+          // Recargar datos y alertas
+          state.students = await apiGet("/api/students", state.students);
+          renderAlerts();
+        } else {
+          toast("Error al guardar la inconsistencia manual.");
+        }
+      });
+    }
+
+    // Guardar Notas Apoderado
+    const saveGNotesBtn = $("#save-guardian-notes-btn");
+    if (saveGNotesBtn) {
+      saveGNotesBtn.addEventListener("click", async () => {
+        const guardianId = saveGNotesBtn.dataset.guardianId;
+        const notesText = $("#drawer-guardian-notes").value;
+        if (!guardianId) {
+          toast("No hay un apoderado asociado para ingresar notas.");
+          return;
+        }
+        const ok = await apiPut(`/api/guardian/${guardianId}/teacher_notes`, { teacher_notes: notesText });
+        if (ok) {
+          toast("Notas del apoderado guardadas exitosamente.");
+        } else {
+          toast("Error al guardar notas del apoderado.");
+        }
+      });
+    }
 
     // Render actividades preventivas dinámicas en el panel
     renderDrawerActivities(id);
@@ -2469,6 +2515,25 @@
 
     // Chatbot flotante
     initChatbot();
+
+    // Modal Glosario Ayuda e Interpretación de Datos
+    const btnGlosario = $("#btn-glosario-ayuda");
+    const modalGlosario = $("#modal-glosario");
+    const btnCloseGlosario = $("#close-glosario-btn");
+    
+    if (btnGlosario && modalGlosario && btnCloseGlosario) {
+      btnGlosario.addEventListener("click", () => {
+        modalGlosario.style.display = "flex";
+      });
+      btnCloseGlosario.addEventListener("click", () => {
+        modalGlosario.style.display = "none";
+      });
+      modalGlosario.addEventListener("click", (e) => {
+        if (e.target === modalGlosario) {
+          modalGlosario.style.display = "none";
+        }
+      });
+    }
   }
 
   document.addEventListener("DOMContentLoaded", init);

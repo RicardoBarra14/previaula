@@ -177,6 +177,10 @@ class GuardianTeacherNotesUpdate(BaseModel):
     teacher_notes: Optional[str] = None
 
 
+class ManualMismatchUpdate(BaseModel):
+    manual_mismatch: Optional[str] = None
+
+
 class StudentActivityAssignIn(BaseModel):
     activity_id: int
     assigned_by: str = "Orientador"
@@ -291,22 +295,28 @@ def compute_risk(conn, student: dict) -> dict:
     mismatch = False
     mismatch_detail = ""
     
-    parent_survey = conn.execute(
-        "SELECT * FROM GuardianSurveys WHERE student_id=? ORDER BY survey_date DESC LIMIT 1",
-        (sid,)
-    ).fetchone()
-    
-    student_report = conn.execute(
-        "SELECT * FROM StudentSelfReports WHERE student_id=? ORDER BY report_date DESC LIMIT 1",
-        (sid,)
-    ).fetchone()
-    
-    if parent_survey and student_report:
-        p_safe = parent_survey["safe_at_school"]
-        s_safe = student_report["safe_at_school"]
-        if (p_safe == "Sí" and s_safe == "No") or (p_safe == "No" and s_safe == "Sí"):
-            mismatch = True
-            mismatch_detail = "Inconsistencia de Seguridad: El apoderado percibe plena seguridad del estudiante en el liceo, pero el estudiante reporta sentirse inseguro."
+    # Inconsistencia manual del docente
+    manual_mis = student.get("manual_mismatch")
+    if manual_mis:
+        mismatch = True
+        mismatch_detail = f"Inconsistencia Manual (Docente): {manual_mis}"
+    else:
+        parent_survey = conn.execute(
+            "SELECT * FROM GuardianSurveys WHERE student_id=? ORDER BY survey_date DESC LIMIT 1",
+            (sid,)
+        ).fetchone()
+        
+        student_report = conn.execute(
+            "SELECT * FROM StudentSelfReports WHERE student_id=? ORDER BY report_date DESC LIMIT 1",
+            (sid,)
+        ).fetchone()
+        
+        if parent_survey and student_report:
+            p_safe = parent_survey["safe_at_school"]
+            s_safe = student_report["safe_at_school"]
+            if (p_safe == "Sí" and s_safe == "No") or (p_safe == "No" and s_safe == "Sí"):
+                mismatch = True
+                mismatch_detail = "Inconsistencia de Seguridad: El apoderado percibe plena seguridad del estudiante en el liceo, pero el estudiante reporta sentirse inseguro."
 
     return {
         "score": score,
@@ -340,7 +350,8 @@ def _student_row_to_dict(row) -> dict:
         "establishment_id": row["establishment_id"],
         "violence_risk_score": row["violence_risk_score"],
         "home_risk_score": row["home_risk_score"],
-        "academic_risk_score": row["academic_risk_score"]
+        "academic_risk_score": row["academic_risk_score"],
+        "manual_mismatch": row["manual_mismatch"] if "manual_mismatch" in row.keys() else None
     }
 
 
@@ -1211,6 +1222,20 @@ def update_student_activity(student_id: int, activity_id: int, payload: StudentA
     finally:
         conn.close()
 
+
+@app.put("/api/students/{student_id}/manual-mismatch")
+def update_student_manual_mismatch(student_id: int, payload: ManualMismatchUpdate):
+    conn = database.get_connection()
+    try:
+        st = conn.execute("SELECT 1 FROM Students WHERE id=?", (student_id,)).fetchone()
+        if not st:
+            raise HTTPException(404, "Estudiante no encontrado")
+            
+        conn.execute("UPDATE Students SET manual_mismatch=? WHERE id=?", (payload.manual_mismatch, student_id))
+        conn.commit()
+        return {"status": "success", "message": "Inconsistencia manual actualizada."}
+    finally:
+        conn.close()
 
 
 # ------------------------------------------------------------------------------
