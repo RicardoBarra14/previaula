@@ -207,6 +207,17 @@ CREATE TABLE IF NOT EXISTS GuardianSurveys (
     FOREIGN KEY (guardian_id) REFERENCES Guardians(id),
     FOREIGN KEY (student_id) REFERENCES Students(id)
 );
+
+CREATE TABLE IF NOT EXISTS GuardianReports (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    guardian_id    INTEGER NOT NULL,
+    student_id     INTEGER NOT NULL,
+    category       TEXT NOT NULL,
+    description    TEXT NOT NULL,
+    report_date    TEXT NOT NULL,
+    FOREIGN KEY (guardian_id) REFERENCES Guardians(id),
+    FOREIGN KEY (student_id) REFERENCES Students(id)
+);
 """
 
 

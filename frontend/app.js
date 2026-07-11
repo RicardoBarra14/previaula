@@ -281,6 +281,49 @@
         }
         return { status: "success", message: "Encuesta registrada exitosamente." };
       }
+      if (path === "/api/guardian/report") {
+        const studentId = body.student_id;
+        if (!window.MOCK_GUARDIAN_REPORTS_CACHE) window.MOCK_GUARDIAN_REPORTS_CACHE = {};
+        if (!window.MOCK_GUARDIAN_REPORTS_CACHE[studentId]) {
+          window.MOCK_GUARDIAN_REPORTS_CACHE[studentId] = [];
+        }
+        
+        const newReport = {
+          id: Date.now(),
+          guardian_id: body.guardian_id,
+          student_id: studentId,
+          category: body.category,
+          description: body.description,
+          report_date: new Date().toISOString().split("T")[0],
+          guardian_name: "Carmen Fuentes" // Apoderado de demostración por defecto
+        };
+        
+        window.MOCK_GUARDIAN_REPORTS_CACHE[studentId].unshift(newReport);
+        
+        // Simular inconsistencia reversa: reporte de acoso/bullying/violencia pero estudiante dice "Sí" (seguro)
+        const student = state.students.find(s => s.id === studentId);
+        if (student) {
+          const sSafe = window.MOCK_STUDENT_REPORTS ? window.MOCK_STUDENT_REPORTS[studentId] : "Sí";
+          if (["Bullying", "Ciberacoso", "Violencia", "Problema en el liceo"].includes(body.category) && sSafe === "Sí") {
+            if (!student.risk) student.risk = {};
+            if (!student.risk.mismatches) student.risk.mismatches = [];
+            
+            // Remover inconsistencias de denuncia previas
+            student.risk.mismatches = student.risk.mismatches.filter(m => !m.startsWith("Seguridad (Denuncia):"));
+            
+            student.risk.mismatch = true;
+            student.risk.mismatches.push(`Seguridad (Denuncia): El apoderado denunció/reportó situación de ${body.category.toLowerCase()} en el liceo, pero el estudiante declara sentirse seguro.`);
+            student.risk.mismatch_detail = student.risk.mismatches[0];
+            
+            // Actualizar MOCK.details para que persista al abrir la ficha
+            if (MOCK.details && MOCK.details[studentId]) {
+              MOCK.details[studentId].risk = student.risk;
+            }
+          }
+        }
+        
+        return { id: newReport.id, status: "success", message: "Denuncia/Reporte guardado exitosamente (Mock)." };
+      }
       if (path === "/api/guardian/excuse") {
         return { id: 999, status: "pendiente", message: "Justificación registrada (Mock)." };
       }
@@ -520,6 +563,11 @@
         const out = window.MOCK_STUDENT_GRADES_CACHE[studentId];
         const general_avg = out.length ? Math.round((out.reduce((a,b)=>a+b.average, 0) / out.length) * 10) / 10 : 0.0;
         return { student_id: studentId, grades: out, general_average: general_avg };
+      }
+      if (path.includes("/guardian-reports")) {
+        const parts = path.split("/");
+        const studentId = parseInt(parts[3]);
+        return (window.MOCK_GUARDIAN_REPORTS_CACHE && window.MOCK_GUARDIAN_REPORTS_CACHE[studentId]) || [];
       }
       if (path === "/api/establishments/compare") {
         if (!window.MOCK_ESTABLISHMENTS_CACHE) {
@@ -961,6 +1009,13 @@
             </div>`).join("") : `<div class="section-sub">Sin incidentes registrados.</div>`}
         </div>
       </div>
+
+      <div style="margin-top: 16px;">
+        <div class="mini-title">Denuncias y Reportes del Apoderado</div>
+        <div id="drawer-guardian-reports" style="padding: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-sm); display: flex; flex-direction: column; gap: 8px;">
+          <div class="section-sub">Cargando denuncias...</div>
+        </div>
+      </div>
       
       <div style="margin-top: 16px;">
         <div class="mini-title">Alertas e Inconsistencias Manuales</div>
@@ -977,6 +1032,26 @@
     $("#drawer-close").addEventListener("click", closeDrawer);
     animateGauges($("#drawer"));
     animateBars($("#drawer"));
+
+    // Cargar Denuncias/Reportes de Apoderados
+    const repContainer = $("#drawer-guardian-reports");
+    if (repContainer) {
+      const reports = await apiGet(`/api/students/${id}/guardian-reports`, []);
+      if (reports && reports.length > 0) {
+        repContainer.innerHTML = reports.map(r => `
+          <div style="padding: 10px; background: var(--surface-2); border-left: 3px solid var(--risk-alto); border-radius: var(--r-sm); margin-bottom: 6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:11px; font-weight:700; color:var(--risk-alto);">
+              <span>🚨 ${escapeHTML(r.category)}</span>
+              <span style="color:var(--ink-mute); font-weight:normal;">${shortDate(r.report_date)}</span>
+            </div>
+            <div style="font-size:12.5px; line-height: 1.45; color:var(--ink);">${escapeHTML(r.description)}</div>
+            <div style="font-size:10.5px; color:var(--ink-soft); margin-top:4px;">Reportado por: ${escapeHTML(r.guardian_name || "Apoderado")}</div>
+          </div>
+        `).join("");
+      } else {
+        repContainer.innerHTML = `<div class="section-sub" style="font-style:italic; font-size:12px;">Sin denuncias ni reportes registrados por el apoderado.</div>`;
+      }
+    }
 
     // Guardar Inconsistencia Manual
     const saveManualMismatchBtn = $("#save-manual-mismatch-btn");
@@ -2438,6 +2513,9 @@
         
         if (tab === "rendimiento") {
           renderFamilyGrades();
+        } else if (tab === "reportar-alerta") {
+          populateReportStudentSelect();
+          renderGuardianReportsHistory();
         }
       });
     });
@@ -2489,6 +2567,109 @@
         renderAlerts();
       }
     });
+
+    // Formulario de Alertas / Denuncias del Apoderado
+    const guardianReportForm = $("#guardian-report-form");
+    if (guardianReportForm) {
+      guardianReportForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const guardianId = state.guardianInfo ? state.guardianInfo.id : 4;
+        const studentId = parseInt($("#report-student-select").value);
+        const category = $("#report-category").value;
+        const description = $("#report-description").value.trim();
+        const confirmCheck = $("#report-confirm").checked;
+
+        if (!studentId) {
+          toast("Por favor seleccione un pupilo.");
+          return;
+        }
+
+        const res = await apiPost("/api/guardian/report", {
+          guardian_id: guardianId,
+          student_id: studentId,
+          category: category,
+          description: description
+        }, { status: "success" });
+
+        if (res) {
+          toast("Reporte confidencial enviado con éxito. El equipo directivo ha sido notificado.");
+          guardianReportForm.reset();
+          $("#report-confirm").checked = false;
+          
+          // Refrescar historial
+          renderGuardianReportsHistory();
+          
+          // Recargar alertas predictivas para ver si generó inconsistencias
+          state.students = await apiGet("/api/students", state.students);
+          renderAlerts();
+        }
+      });
+    }
+
+    async function populateReportStudentSelect() {
+      const select = $("#report-student-select");
+      if (!select) return;
+      
+      const guardianId = state.guardianInfo ? state.guardianInfo.id : 4;
+      // Obtener del estado o recargar
+      if (!state.guardianInfo || !state.guardianInfo.students) {
+        await renderFamilyProfile();
+      }
+      
+      const students = (state.guardianInfo && state.guardianInfo.students) || [];
+      if (students.length === 0) {
+        select.innerHTML = `<option value="">No tiene pupilos vinculados</option>`;
+      } else {
+        select.innerHTML = students.map(s => `
+          <option value="${s.id}">${escapeHTML(s.full_name)} (${escapeHTML(s.course)})</option>
+        `).join("");
+      }
+    }
+
+    async function renderGuardianReportsHistory() {
+      const list = $("#guardian-reports-history-list");
+      if (!list) return;
+      
+      const guardianId = state.guardianInfo ? state.guardianInfo.id : 4;
+      const students = (state.guardianInfo && state.guardianInfo.students) || [];
+      
+      if (students.length === 0) {
+        list.innerHTML = `<div class="muted" style="font-size:12.5px; text-align:center; padding: 20px 0;">No hay alumnos vinculados para listar reportes.</div>`;
+        return;
+      }
+      
+      list.innerHTML = `<div class="muted" style="font-size:12px; text-align:center; padding: 10px 0;">Cargando historial...</div>`;
+      
+      // Obtener denuncias de todos los pupilos vinculados
+      let allReports = [];
+      for (const s of students) {
+        const reps = await apiGet(`/api/students/${s.id}/guardian-reports`, []);
+        if (reps && reps.length) {
+          allReports = allReports.concat(reps);
+        }
+      }
+      
+      // Ordenar por fecha descendente
+      allReports.sort((a,b) => new Date(b.report_date) - new Date(a.report_date));
+      
+      if (allReports.length === 0) {
+        list.innerHTML = `<div class="muted" style="font-size:12.5px; text-align:center; padding: 20px 0;">No ha ingresado reportes o alertas aún.</div>`;
+      } else {
+        list.innerHTML = allReports.map(r => {
+          const student = students.find(s => s.id === r.student_id) || {};
+          return `
+            <div style="padding: 12px; background: var(--bg); border: 1px solid var(--line); border-left: 4px solid var(--risk-alto); border-radius: var(--r-sm); font-size: 12.5px; line-height: 1.45;">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:var(--risk-alto); margin-bottom: 4px;">
+                <span>🚨 ${escapeHTML(r.category)}</span>
+                <span style="color:var(--ink-mute); font-weight:normal; font-size:10.5px;">${shortDate(r.report_date)}</span>
+              </div>
+              <div style="color:var(--ink); font-weight: 500; margin-bottom: 2px;">Pupilo: ${escapeHTML(student.full_name || "Estudiante")}</div>
+              <div style="color:var(--ink-soft); font-style: italic;">"${escapeHTML(r.description)}"</div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
 
     // Formulario socioemocional del estudiante
     const wellbeingForm = $("#wellbeing-form");

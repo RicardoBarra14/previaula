@@ -191,6 +191,13 @@ class StudentActivityUpdateIn(BaseModel):
     feedback: Optional[str] = None
 
 
+class GuardianReportIn(BaseModel):
+    guardian_id: int
+    student_id: int
+    category: str
+    description: str
+
+
 
 # ------------------------------------------------------------------------------
 # Utilidades
@@ -313,7 +320,18 @@ def compute_risk(conn, student: dict) -> dict:
         elif p_safe == "No" and s_safe == "Sí":
             mismatches.append("Seguridad: El apoderado reporta el liceo como inseguro, pero el estudiante indica sentirse seguro.")
 
-    # 2. Inconsistencia manual ingresada por el profesor
+    # 2. Inconsistencia basada en reportes/denuncias de apoderados cruzados con el alumno
+    guardian_reports = conn.execute(
+        "SELECT * FROM GuardianReports WHERE student_id=? ORDER BY report_date DESC LIMIT 1",
+        (sid,)
+    ).fetchone()
+    if guardian_reports and student_report:
+        s_safe = student_report["safe_at_school"]
+        rep_cat = guardian_reports["category"]
+        if rep_cat in ["Bullying", "Ciberacoso", "Violencia", "Problema en el liceo"] and s_safe == "Sí":
+            mismatches.append(f"Seguridad (Denuncia): El apoderado denunció/reportó situación de {rep_cat.lower()} en el liceo, pero el estudiante declara sentirse seguro.")
+
+    # 3. Inconsistencia manual ingresada por el profesor
     manual_mis = student.get("manual_mismatch")
     if manual_mis:
         mismatches.append(f"Manual (Docente): {manual_mis}")
@@ -1006,6 +1024,42 @@ def create_guardian_survey(payload: GuardianSurveyIn):
         )
         conn.commit()
         return {"id": cur.lastrowid, "status": "success", "message": "Encuesta registrada exitosamente."}
+    finally:
+        conn.close()
+
+
+@app.post("/api/guardian/report", status_code=201)
+def create_guardian_report(payload: GuardianReportIn):
+    conn = database.get_connection()
+    try:
+        cur = conn.execute(
+            "INSERT INTO GuardianReports (guardian_id, student_id, category, description, report_date) "
+            "VALUES (?,?,?,?,?)",
+            (
+                payload.guardian_id,
+                payload.student_id,
+                payload.category,
+                payload.description,
+                TODAY.isoformat()
+            )
+        )
+        conn.commit()
+        return {"id": cur.lastrowid, "status": "success", "message": "Denuncia/Reporte guardado exitosamente."}
+    finally:
+        conn.close()
+
+
+@app.get("/api/students/{student_id}/guardian-reports")
+def get_student_guardian_reports(student_id: int):
+    conn = database.get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT r.*, g.name as guardian_name FROM GuardianReports r "
+            "JOIN Guardians g ON r.guardian_id=g.id "
+            "WHERE r.student_id=? ORDER BY r.report_date DESC",
+            (student_id,)
+        ).fetchall()
+        return [dict(r) for r in rows]
     finally:
         conn.close()
 

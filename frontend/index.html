@@ -508,6 +508,7 @@
               <button class="family-tab-btn" data-family-tab="rendimiento" type="button">Notas y Rendimiento</button>
               <button class="family-tab-btn" data-family-tab="justificaciones" type="button">Justificaciones y Encuestas</button>
               <button class="family-tab-btn" data-family-tab="perfil" type="button">Mi Perfil y Ficha Apoderado</button>
+              <button class="family-tab-btn" data-family-tab="reportar-alerta" type="button" style="color:var(--risk-alto); font-weight:700;">🚨 Reportar Alerta</button>
             </div>
 
             <!-- Tab 1: Asistencia y Calendario -->
@@ -736,6 +737,69 @@
                   </div>
 
 
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 5: Reportar Alerta / Denunciar Situación -->
+            <div class="family-tab-content" id="family-tab-content-reportar-alerta" style="display: none;">
+              <div class="family-grid" style="grid-template-columns: 1.2fr 0.8fr; gap: 20px;">
+                <!-- Formulario de Reporte -->
+                <div class="card" style="padding: 20px;">
+                  <h3 class="section-title" style="font-size: 16px; margin-bottom: 4px; color: var(--risk-alto); display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"/></svg>
+                    Canal Confidencial de Alertas y Denuncias
+                  </h3>
+                  <div class="section-sub" style="margin-bottom: 16px;">
+                    Utilice este formulario confidencial para reportar agresiones, acoso escolar (bullying) o cualquier situación de riesgo que afecte a su pupilo. El equipo directivo y psicosocial revisará la información de forma inmediata.
+                  </div>
+
+                  <form id="guardian-report-form" class="form">
+                    <div class="field">
+                      <label class="field__label" for="report-student-select">Seleccione Alumno (Pupilo)</label>
+                      <select id="report-student-select" class="select" required style="background: var(--bg); border: 1px solid var(--line-strong); padding: 10px; width: 100%; border-radius: var(--r-sm);">
+                        <!-- Poblado dinámicamente -->
+                      </select>
+                    </div>
+
+                    <div class="field">
+                      <label class="field__label" for="report-category">Tipo de Situación a Reportar</label>
+                      <select id="report-category" class="select" required style="background: var(--bg); border: 1px solid var(--line-strong); padding: 10px; width: 100%; border-radius: var(--r-sm);">
+                        <option value="Bullying">Bullying (Acoso escolar físico o verbal)</option>
+                        <option value="Ciberacoso">Ciberacoso (Hostigamiento en redes sociales)</option>
+                        <option value="Violencia">Violencia o agresión física en el establecimiento</option>
+                        <option value="Problema en el liceo">Conflicto o problemas con docentes/funcionarios</option>
+                        <option value="Ausentismo forzado">Dificultad o impedimento para asistir a clases</option>
+                        <option value="Problema en el hogar">Situación compleja en el hogar o entorno familiar</option>
+                        <option value="Otro">Otro problema de bienestar o convivencia</option>
+                      </select>
+                    </div>
+
+                    <div class="field">
+                      <label class="field__label" for="report-description">Descripción Detallada de los Hechos</label>
+                      <textarea id="report-description" class="textarea" required placeholder="Describa lo sucedido: fechas, personas involucradas (opcional) y cómo se siente su pupilo..." style="min-height: 120px; background: var(--bg); border: 1px solid var(--line-strong); padding: 10px; width: 100%; border-radius: var(--r-sm); font-family: inherit; font-size: 13px; color: var(--ink); line-height: 1.5; resize: vertical;"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: start; margin-bottom: 16px;">
+                      <input type="checkbox" id="report-confirm" required style="margin-top: 3px; transform: scale(1.1);" />
+                      <label for="report-confirm" style="font-size: 12px; color: var(--ink-soft); line-height: 1.4; user-select: none;">
+                        Declaro que la información entregada es verídica y entiendo que será tratada bajo estricta confidencialidad por el equipo psicosocial del establecimiento.
+                      </label>
+                    </div>
+
+                    <button type="submit" class="btn btn--accent btn--block" style="background: var(--risk-alto); border-color: var(--risk-alto); color: #fff;">Enviar Reporte Confidencial</button>
+                  </form>
+                </div>
+
+                <!-- Historial de reportes del apoderado -->
+                <div class="card" style="padding: 20px; background: var(--surface-2); display: flex; flex-direction: column;">
+                  <h3 class="section-title" style="font-size: 15px; margin-bottom: 4px; color: var(--ink);">Historial de Alertas Enviadas</h3>
+                  <div class="section-sub" style="margin-bottom: 16px;">Registro de sus comunicaciones al establecimiento</div>
+
+                  <div id="guardian-reports-history-list" style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 400px; flex-grow: 1;">
+                    <!-- Poblado dinámicamente -->
+                    <div class="muted" style="font-size:12.5px; text-align:center; padding: 20px 0;">No ha ingresado reportes o alertas aún.</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1093,8 +1157,8 @@
   </div>
 
   <!-- Respaldo de datos (se usa solo si la API no responde) -->
-  <script src="mock-data.js?v=1.1.8"></script>
+  <script src="mock-data.js?v=1.1.9"></script>
   <!-- Lógica de la aplicación -->
-  <script src="app.js?v=1.1.8"></script>
+  <script src="app.js?v=1.1.9"></script>
 </body>
 </html>
